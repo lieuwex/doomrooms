@@ -25,7 +25,7 @@ func MakeTCPCommunicator() TCPCommunicator {
 	}
 }
 
-func (comm *TCPCommunicator) ConnectionCh() chan *Connection {
+func (comm *TCPCommunicator) ConnectionCh() <-chan *Connection {
 	return comm.connectionCh
 }
 
@@ -48,7 +48,6 @@ func (comm *TCPCommunicator) Start(host string, port string) error {
 		return err
 	}
 
-	fmt.Printf("listening on tcp...\n")
 	comm.started = true
 	go func() {
 		for {

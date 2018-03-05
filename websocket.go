@@ -11,6 +11,13 @@ type WebsocketCommunicator struct {
 	connectionCh chan *Connection
 }
 
+func MakeWebsocketCommunicator() WebsocketCommunicator {
+	return WebsocketCommunicator{
+		started:      false,
+		connectionCh: make(chan *Connection),
+	}
+}
+
 func (comm *WebsocketCommunicator) ConnectionCh() chan *Connection {
 	return comm.connectionCh
 }
