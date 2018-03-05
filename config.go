@@ -2,8 +2,9 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func HandleService(cm *CommunicatorManager, service string, port string, host string) error {
@@ -16,7 +17,10 @@ func HandleService(cm *CommunicatorManager, service string, port string, host st
 		}
 	}
 
-	log.Printf("enabled service %s on port %s", service, port)
+	cm.log.WithFields(log.Fields{
+		"service": service,
+		"port":    port,
+	}).Info("started service")
 
 	return nil
 }
@@ -53,7 +57,9 @@ func ReadConfig(cm *CommunicatorManager, filename string) error {
 
 	for name, comm := range cm.communicators {
 		if !comm.Started() {
-			log.Printf("Warning: service '%s' not enabled", name)
+			cm.log.WithFields(log.Fields{
+				"service": name,
+			}).Warn("service not enabled")
 		}
 	}
 

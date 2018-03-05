@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/sirupsen/logrus"
+)
 
 type Communicator interface {
 	ConnectionCh() <-chan *Connection
@@ -17,16 +21,20 @@ type NetConnection interface {
 type CommunicatorManager struct {
 	connCh        chan *Connection
 	communicators map[string]Communicator
+	log           *logrus.Logger
 }
 
 func MakeCommunicatorManager() *CommunicatorManager {
-	return &CommunicatorManager{
+	cm := &CommunicatorManager{
 		connCh: make(chan *Connection),
 		communicators: map[string]Communicator{
 			"player-tcp": MakeTCPCommunicator(),
 			"player-wc":  MakeWebsocketCommunicator(),
 		},
+		log: logrus.New(),
 	}
+	cm.log.Formatter = Formatter
+	return cm
 }
 
 func (cm *CommunicatorManager) StartService(service string, host string, port string) error {

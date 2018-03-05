@@ -1,8 +1,12 @@
 package main
 
-import "fmt"
+import (
+	log "github.com/sirupsen/logrus"
+)
 
 func main() {
+	SetLogrusFormatter()
+
 	cm := MakeCommunicatorManager()
 
 	err := ReadConfig(cm, "./config")
@@ -12,7 +16,9 @@ func main() {
 
 	for {
 		connection := <-cm.ConnectionCh()
-		fmt.Printf("got new connection in main.go: %#v, passing to HandleConnection...\n", connection)
+		log.WithFields(log.Fields{
+			"conn": connection,
+		}).Info("got new connection in main.go")
 		go HandlePlayerConnection(connection)
 	}
 }

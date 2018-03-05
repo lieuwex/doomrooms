@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func HandlePlayerConnection(conn *Connection) {
@@ -9,7 +11,7 @@ func HandlePlayerConnection(conn *Connection) {
 
 	msg := <-conn.Chan()
 	if conn.closed {
-		fmt.Printf("connection closed lol\n")
+		log.Info("connection closed")
 		return
 	}
 
@@ -30,13 +32,15 @@ func HandlePlayerConnection(conn *Connection) {
 		return
 	}
 
-	fmt.Printf("got player: %#v\n", p)
+	log.WithFields(log.Fields{
+		"player": p,
+	}).Info("got player")
 	conn.Reply(msg.ID, "", p)
 
 	for {
 		msg := <-conn.Chan()
 		if conn.closed {
-			fmt.Printf("connection closed lol\n")
+			log.Info("connection closed")
 			break
 		}
 

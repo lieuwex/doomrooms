@@ -2,7 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Connection struct {
@@ -41,7 +42,9 @@ func (conn *Connection) Reply(id uint64, err string, res interface{}) error {
 
 func (conn *Connection) write(msg Message) error {
 	bytes, err := json.Marshal(msg)
-	log.Printf("sending '%s'\n", string(bytes))
+	log.WithFields(log.Fields{
+		"data": string(bytes),
+	}).Info("sending")
 	if err != nil {
 		return err
 	}
@@ -50,7 +53,9 @@ func (conn *Connection) write(msg Message) error {
 
 func (conn *Connection) writeres(res Result) error { // HACK: REVIEW
 	bytes, err := json.Marshal(res)
-	log.Printf("sending '%s'\n", string(bytes))
+	log.WithFields(log.Fields{
+		"data": string(bytes),
+	}).Info("sending")
 	if err != nil {
 		return err
 	}

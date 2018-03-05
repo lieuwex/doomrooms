@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type GameServer struct {
@@ -26,7 +27,7 @@ func ListenGameservers(host string, port string) error {
 		go HandleGameServer(connection)
 	}
 
-	fmt.Println("doei")
+	log.Info("doei")
 	return nil
 }
 
@@ -50,13 +51,15 @@ func HandleGameServer(conn *Connection) {
 
 	g := MakeGame(conn, msg.Args[0].(string), msg.Args[1].(string))
 
-	fmt.Printf("made game: %#v\n", g)
+	log.WithFields(log.Fields{
+		"game": g,
+	}).Info("made game")
 	conn.Reply(msg.ID, "", g)
 
 	for {
 		msg := <-conn.Chan()
 		if conn.closed {
-			fmt.Printf("connection closed lol\n")
+			log.Info("connection closed")
 			break
 		}
 

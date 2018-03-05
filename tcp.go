@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const delim = '\n'
@@ -92,7 +93,9 @@ func makeConnection(socket *net.TCPConn) *Connection {
 			raw, err := reader.ReadBytes('\n')
 			if err != nil {
 				if err != io.EOF {
-					log.Printf("error while reading from connection: %#v\n", err)
+					log.WithFields(log.Fields{
+						"error": err,
+					}).Error("error while reading from connection")
 				}
 				conn.closed = true // REVIEW
 				close(conn.ch)
@@ -101,7 +104,9 @@ func makeConnection(socket *net.TCPConn) *Connection {
 
 			var msg Message
 			if json.Unmarshal(raw, &msg) != nil {
-				log.Printf("invalid message received: %s\n", raw)
+				log.WithFields(log.Fields{
+					"msg": raw,
+				}).Error("invalid message received")
 				continue
 			}
 			if msg.ID > conn.currentID {
