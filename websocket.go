@@ -11,14 +11,14 @@ type WebsocketCommunicator struct {
 	connectionCh chan *Connection
 }
 
-func MakeWebsocketCommunicator() WebsocketCommunicator {
-	return WebsocketCommunicator{
+func MakeWebsocketCommunicator() *WebsocketCommunicator {
+	return &WebsocketCommunicator{
 		started:      false,
 		connectionCh: make(chan *Connection),
 	}
 }
 
-func (comm *WebsocketCommunicator) ConnectionCh() chan *Connection {
+func (comm *WebsocketCommunicator) ConnectionCh() <-chan *Connection {
 	return comm.connectionCh
 }
 
@@ -26,7 +26,7 @@ func (comm *WebsocketCommunicator) Started() bool {
 	return comm.started
 }
 
-func (comm *WebsocketCommunicator) Start() error {
+func (comm *WebsocketCommunicator) Start(host string, port string) error {
 	if comm.started {
 		return fmt.Errorf("already started")
 	}

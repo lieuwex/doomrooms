@@ -15,49 +15,38 @@ type NetConnection interface {
 }
 
 type CommunicatorManager struct {
-	connCh chan *Connection
+	connCh        chan *Connection
+	communicators map[string]Communicator
 }
 
 func MakeCommunicatorManager() *CommunicatorManager {
 	return &CommunicatorManager{
 		connCh: make(chan *Connection),
+		communicators: map[string]Communicator{
+			"player-tcp": MakeTCPCommunicator(),
+			"player-wc":  MakeWebsocketCommunicator(),
+		},
 	}
 }
 
 func (cm *CommunicatorManager) StartService(service string, host string, port string) error {
 	// var comm Communicator = nil // TODO
-	var err error = nil
 
-	switch service {
-	case "gameserver-tcp":
-		go ListenGameservers(host, port)
-
-	case "player-tcp":
-		// HACK
-		tcpComm := MakeTCPCommunicator()
-		err = tcpComm.Start(host, port)
-		go func() {
-			for {
-				cm.connCh <- <-tcpComm.ConnectionCh()
-			}
-		}()
-	case "player-wc":
-		// HACK
-		wsComm := MakeWebsocketCommunicator()
-		err = wsComm.Start()
-		go func() {
-			for {
-				cm.connCh <- <-wsComm.ConnectionCh()
-			}
-		}()
-
-	default:
-		err = fmt.Errorf("no service with name '%s' found", service)
+	comm := cm.communicators[service]
+	if comm == nil {
+		return fmt.Errorf("no service with name '%s' found", service)
 	}
 
+	err := comm.Start(host, port)
 	if err != nil {
 		return err
 	}
+
+	go func() {
+		for {
+			cm.connCh <- <-comm.ConnectionCh()
+		}
+	}()
 
 	return nil
 }

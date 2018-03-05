@@ -17,8 +17,8 @@ type TCPCommunicator struct {
 	connectionCh chan *Connection
 }
 
-func MakeTCPCommunicator() TCPCommunicator {
-	return TCPCommunicator{
+func MakeTCPCommunicator() *TCPCommunicator {
+	return &TCPCommunicator{
 		started:      false,
 		listener:     nil,
 		connectionCh: make(chan *Connection),

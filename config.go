@@ -7,9 +7,13 @@ import (
 )
 
 func HandleService(cm *CommunicatorManager, service string, port string, host string) error {
-	err := cm.StartService(service, host, port)
-	if err != nil {
-		return err
+	if service == "gameserver-tcp" {
+		go ListenGameservers(host, port)
+	} else {
+		err := cm.StartService(service, host, port)
+		if err != nil {
+			return err
+		}
 	}
 
 	log.Printf("enabled service %s on port %s", service, port)
@@ -42,7 +46,14 @@ func ReadConfig(cm *CommunicatorManager, filename string) error {
 
 		err = HandleService(cm, service, port, host)
 		if err != nil {
+			// REVIEW
 			return err
+		}
+	}
+
+	for name, comm := range cm.communicators {
+		if !comm.Started() {
+			log.Printf("Warning: service '%s' not enabled", name)
 		}
 	}
 
