@@ -27,6 +27,9 @@ func HandleService(cm *CommunicatorManager, service string, port string, host st
 
 // REVIEW: warn the user or something when shit doesn't have a port?
 func ReadConfig(cm *CommunicatorManager, filename string) error {
+	log.WithFields(log.Fields{
+		"path": filename,
+	}).Info("reading config file")
 	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err

@@ -1,15 +1,26 @@
 package main
 
 import (
+	"flag"
+
 	log "github.com/sirupsen/logrus"
 )
 
+var configPath string
+
+func parseFlags() {
+	flag.StringVar(&configPath, "config", "./config", "location of the config file")
+
+	flag.Parse()
+}
+
 func main() {
 	SetLogrusFormatter()
+	parseFlags()
 
 	cm := MakeCommunicatorManager()
 
-	err := ReadConfig(cm, "./config")
+	err := ReadConfig(cm, configPath)
 	if err != nil {
 		panic(err)
 	}
