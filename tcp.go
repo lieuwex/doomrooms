@@ -105,7 +105,7 @@ func makeConnection(socket *net.TCPConn) *Connection {
 			var msg Message
 			if json.Unmarshal(raw, &msg) != nil {
 				log.WithFields(log.Fields{
-					"msg": raw,
+					"msg": string(raw),
 				}).Error("invalid message received")
 				continue
 			}

@@ -8,3 +8,12 @@ func PlayerIndex(players []*Player, player *Player) int {
 	}
 	return -1
 }
+
+func GameServerIndex(servers []*GameServer, gs *GameServer) int {
+	for i, val := range servers {
+		if val == gs {
+			return i
+		}
+	}
+	return -1
+}

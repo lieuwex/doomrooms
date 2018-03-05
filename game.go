@@ -1,8 +1,11 @@
 package main
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
-var Games = make([]*Game, 0)
+var Games = make(map[string]*Game)
 
 type Game struct {
 	ID      string    `json:"id"`
@@ -17,7 +20,11 @@ type Game struct {
 	// TODO: player connections
 }
 
-func MakeGame(conn *Connection, id string, name string) *Game {
+func MakeGame(conn *Connection, id string, name string) (*Game, error) {
+	if Games[id] != nil {
+		return nil, fmt.Errorf("game with ID '%s' already exist", id)
+	}
+
 	g := &Game{
 		ID:      id,
 		Name:    name,
@@ -28,17 +35,12 @@ func MakeGame(conn *Connection, id string, name string) *Game {
 		idGen:      MakeIDGenerator(),
 		connection: conn,
 	}
-	Games = append(Games, g) // REVIEW: safe?
-	return g
+	Games[id] = g // REVIEW: safe?
+	return g, nil
 }
 
 func GetGame(id string) *Game {
-	for _, g := range Games {
-		if g.ID == id {
-			return g
-		}
-	}
-	return nil
+	return Games[id]
 }
 
 func (g *Game) MakeRoom(name string) *Room {

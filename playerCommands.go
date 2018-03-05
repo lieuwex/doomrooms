@@ -32,6 +32,10 @@ func onPlayerCommand(player *Player, msg Message) {
 		})
 	}
 
+	handleCommand("ping", 0, func() {
+		reply("", "pong")
+	})
+
 	handleCommand("make-room", 1, func() { // TODO
 		name := msg.Args[0].(string)
 
