@@ -1,17 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
-	"strings"
+	"strconv"
 
+	"github.com/BurntSushi/toml"
 	log "github.com/sirupsen/logrus"
 )
 
-func HandleService(cm *CommunicatorManager, service string, port string, host string) error {
+type listenerSetting struct {
+	Host    string
+	Port    uint64
+	Timeout uint
+}
+
+func HandleService(cm *CommunicatorManager, service string, settings listenerSetting) error {
+	if settings.Port == 0 {
+		return fmt.Errorf("port required")
+	}
+	portStr := strconv.FormatUint(settings.Port, 10)
+
 	if service == "gameserver-tcp" {
-		go ListenGameservers(host, port)
+		go ListenGameservers(settings.Host, portStr)
 	} else {
-		err := cm.StartService(service, host, port)
+		err := cm.StartService(service, settings.Host, portStr)
 		if err != nil {
 			return err
 		}
@@ -19,13 +32,12 @@ func HandleService(cm *CommunicatorManager, service string, port string, host st
 
 	cm.log.WithFields(log.Fields{
 		"service": service,
-		"port":    port,
+		"port":    settings.Port,
 	}).Info("started service")
 
 	return nil
 }
 
-// REVIEW: warn the user or something when shit doesn't have a port?
 func ReadConfig(cm *CommunicatorManager, filename string) error {
 	log.WithFields(log.Fields{
 		"path": filename,
@@ -35,23 +47,13 @@ func ReadConfig(cm *CommunicatorManager, filename string) error {
 		return err
 	}
 
-	lines := strings.Split(string(bytes), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" || // empty
-			line[0] == '#' { // comment
-			continue
-		}
+	var config map[string]listenerSetting
+	if _, err := toml.Decode(string(bytes), &config); err != nil {
+		return err
+	}
 
-		words := strings.Split(line, " ")
-		service := words[0]
-		port := words[1]
-		host := ""
-		if len(words) == 3 {
-			host = words[3]
-		}
-
-		err = HandleService(cm, service, port, host)
+	for service, settings := range config {
+		err = HandleService(cm, service, settings)
 		if err != nil {
 			// REVIEW
 			return err
