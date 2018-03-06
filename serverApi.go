@@ -8,7 +8,15 @@ import (
 
 type GameServer struct {
 	Connection *Connection
-	Game       *Game
+}
+
+func (gs *GameServer) Game() *Game {
+	for _, g := range Games {
+		if g.GameServer() == gs {
+			return g
+		}
+	}
+	return nil
 }
 
 var GameServers = make([]*GameServer, 0)
@@ -32,6 +40,11 @@ func removeGameServer(gs *GameServer) error {
 
 	GameServers[i] = GameServers[len(GameServers)-1]
 	GameServers = GameServers[:len(GameServers)-1]
+
+	g := gs.Game()
+	if g != nil {
+		g.gameServer = nil
+	}
 
 	return nil
 }
@@ -61,34 +74,6 @@ func HandleGameServer(gs *GameServer) {
 
 	addGameServer(gs)
 	defer removeGameServer(gs)
-
-	msg := <-conn.Chan()
-	if conn.closed {
-		return
-	}
-
-	if msg.Method != "hello" {
-		// REVIEW
-		conn.Reply(msg.ID, "expected 'hello' msg", nil)
-		return
-	} else if len(msg.Args) != 2 {
-		// REVIEW
-		conn.Reply(msg.ID, "expected 2 args", nil)
-		return
-	}
-
-	g, err := MakeGame(conn, msg.Args[0].(string), msg.Args[1].(string))
-	if err != nil {
-		conn.Reply(msg.ID, err.Error(), nil)
-		return
-	}
-
-	log.WithFields(log.Fields{
-		"game": g,
-	}).Info("made game")
-
-	gs.Game = g
-	conn.Reply(msg.ID, "", g)
 
 	for {
 		msg := <-conn.Chan()
@@ -126,6 +111,43 @@ func onGameServerCommand(gs *GameServer, msg Message) {
 
 	handleCommand("ping", 0, func() {
 		reply("", "pong")
+	})
+
+	handleCommand("attach-game", 2, func() {
+		gameID := msg.Args[0].(string)
+		force := msg.Args[1].(bool)
+
+		g := GetGame(gameID)
+		if g == nil {
+			reply("game not found", nil)
+			return
+		}
+
+		if g.gameServer != nil {
+			if !force {
+				reply("a gameserver has already been attached and force arg is false", nil)
+				return
+			}
+
+			g.gameServer.Connection.Send("emit", "conn-overrule")
+		}
+
+		g.gameServer = gs
+		reply("", g)
+	})
+
+	handleCommand("make-game", 2, func() {
+		gameID := msg.Args[0].(string)
+		gameName := msg.Args[1].(string)
+
+		g, err := MakeGame(gameID, gameName)
+		if err != nil {
+			reply(err.Error(), nil)
+			return
+		}
+
+		g.gameServer = gs
+		reply("", g)
 	})
 
 	if !handled {

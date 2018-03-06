@@ -17,12 +17,12 @@ type Game struct {
 	rooms map[string]*Room
 
 	idGen      IDGenerator
-	connection *Connection
+	gameServer *GameServer
 
 	// TODO: player connections
 }
 
-func MakeGame(conn *Connection, id string, name string) (*Game, error) {
+func MakeGame(id string, name string) (*Game, error) {
 	if Games[id] != nil {
 		return nil, fmt.Errorf("game with ID '%s' already exist", id)
 	}
@@ -34,8 +34,7 @@ func MakeGame(conn *Connection, id string, name string) (*Game, error) {
 
 		rooms: make(map[string]*Room),
 
-		idGen:      MakeIDGenerator(),
-		connection: conn,
+		idGen: MakeIDGenerator(),
 	}
 	Games[id] = g // REVIEW: safe?
 
@@ -93,4 +92,8 @@ func (g *Game) CheckNickname(nick string) bool {
 		}
 	}
 	return true
+}
+
+func (g *Game) GameServer() *GameServer {
+	return g.gameServer
 }

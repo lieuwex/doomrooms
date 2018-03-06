@@ -78,7 +78,8 @@ func onPlayerCommand(player *Player, msg Message) {
 	handleRoomCommand("start", 0, func() {
 		player.currentRoom.Broadcast("start", "jaja")
 
-		player.currentRoom.Game().connection.Send("gamestartofzo", player.currentRoom.ID)
+		// HACK: for demo
+		player.currentRoom.Game().GameServer().Connection.Send("gamestartofzo", player.currentRoom.ID)
 
 		reply("", "started!")
 	})
