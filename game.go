@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var Games = make(map[string]*Game)
@@ -36,6 +38,11 @@ func MakeGame(conn *Connection, id string, name string) (*Game, error) {
 		connection: conn,
 	}
 	Games[id] = g // REVIEW: safe?
+
+	log.WithFields(log.Fields{
+		"game": g,
+	}).Info("made game")
+
 	return g, nil
 }
 

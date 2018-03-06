@@ -21,13 +21,15 @@ func HandleService(cm *CommunicatorManager, service string, settings listenerSet
 	}
 	portStr := strconv.FormatUint(settings.Port, 10)
 
+	var err error
 	if service == "gameserver-tcp" {
-		go ListenGameservers(settings.Host, portStr)
+		err = ListenGameservers(settings.Host, portStr)
 	} else {
-		err := cm.StartService(service, settings.Host, portStr)
-		if err != nil {
-			return err
-		}
+		err = cm.StartService(service, settings.Host, portStr)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	cm.log.WithFields(log.Fields{

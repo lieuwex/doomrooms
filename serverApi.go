@@ -40,17 +40,17 @@ func ListenGameservers(host string, port string) error {
 	comm := MakeTCPCommunicator()
 	err := comm.Start(host, port)
 	if err != nil {
-		panic(err) // TODO
 		return err
 	}
-	defer comm.Stop() // REVIEW
 
-	for {
-		gs := &GameServer{
-			Connection: <-comm.ConnectionCh(),
+	go func() {
+		for {
+			gs := &GameServer{
+				Connection: <-comm.ConnectionCh(),
+			}
+			go HandleGameServer(gs)
 		}
-		go HandleGameServer(gs)
-	}
+	}()
 
 	return nil
 }
