@@ -7,6 +7,16 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		conn.Reply(msg.ID, err, res)
 	}
 
+	roomOthers := func() []*Player {
+		res := player.CurrentRoom().Players[:0]
+		for _, p := range player.CurrentRoom().Players {
+			if p != player {
+				res = append(res, p)
+			}
+		}
+		return res
+	}
+
 	handleCommand := func(method string, argCount int, fn func()) {
 		if msg.Method != method {
 			return
@@ -97,6 +107,17 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		rooms := player.Game().SearchRooms(query)
 		reply("", rooms)
 	})
+
+	handleRoomCommand("send-room-chat", 1, func() {
+		line := msg.Args[0].(string)
+		players := roomOthers()
+
+		for _, p := range players {
+			p.Send("emit", "room-chat", player.Nickname, line)
+		}
+	})
+
+	// REVIEW: Team chat?
 
 	handleRoomCommand("start", 0, func() {
 		player.currentRoom.Broadcast("start", "jaja")
