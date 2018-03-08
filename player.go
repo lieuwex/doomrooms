@@ -116,6 +116,7 @@ func MakePlayer(nick string, password string) (*Player, error) {
 
 		connections: make([]*Connection, 0),
 	}
+	Players[nick] = p
 	return p, nil
 }
 
