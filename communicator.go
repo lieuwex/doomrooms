@@ -29,7 +29,7 @@ func MakeCommunicatorManager() *CommunicatorManager {
 		connCh: make(chan *Connection),
 		communicators: map[string]Communicator{
 			"player-tcp": MakeTCPCommunicator(),
-			"player-wc":  MakeWebsocketCommunicator(),
+			"player-ws":  MakeWebsocketCommunicator(),
 		},
 		log: logrus.New(),
 	}
