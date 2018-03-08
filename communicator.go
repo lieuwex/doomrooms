@@ -38,8 +38,6 @@ func MakeCommunicatorManager() *CommunicatorManager {
 }
 
 func (cm *CommunicatorManager) StartService(service string, host string, port string) error {
-	// var comm Communicator = nil // TODO
-
 	comm := cm.communicators[service]
 	if comm == nil {
 		return fmt.Errorf("no service with name '%s' found", service)
