@@ -7,7 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var Players = make([]*Player, 0)
+var Players = make(map[string]*Player)
 
 func HandlePlayerConnection(conn *Connection) {
 	defer conn.netConn.Close()
@@ -96,8 +96,9 @@ type Player struct {
 }
 
 func checkNickname(nick string) bool {
-	for _, p := range Players {
-		if strings.ToLower(p.Nickname) == strings.ToLower(nick) {
+	lowerNick := strings.ToLower(nick)
+	for n, _ := range Players {
+		if strings.ToLower(n) == lowerNick {
 			return false
 		}
 	}
