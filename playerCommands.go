@@ -21,8 +21,19 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		fn()
 	}
 
-	handleRoomCommand := func(method string, argCount int, fn func()) {
+	handleGameCommand := func(method string, argCount int, fn func()) {
 		handleCommand(method, argCount, func() {
+			if player.Game() == nil {
+				reply("no game selected", nil)
+				return
+			}
+
+			fn()
+		})
+	}
+
+	handleRoomCommand := func(method string, argCount int, fn func()) {
+		handleGameCommand(method, argCount, func() {
 			if player.currentRoom == nil {
 				reply("not in a room", nil)
 				return
@@ -36,7 +47,19 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		reply("", "pong")
 	})
 
-	handleCommand("make-room", 1, func() { // TODO
+	handleCommand("set-game", 1, func() {
+		gameID := msg.Args[0].(string)
+
+		g := GetGame(gameID)
+		if g == nil {
+			reply("game not found", nil)
+		}
+
+		player.CurrentGameID = gameID
+		reply("", g)
+	})
+
+	handleCommand("make-room", 1, func() {
 		name := msg.Args[0].(string)
 
 		room := player.Game().MakeRoom(name)

@@ -89,9 +89,9 @@ func HandlePlayerConnection(conn *Connection) {
 }
 
 type Player struct {
-	GameID   string                 `json:"gameId"`
-	Nickname string                 `json:"nick"`
-	Info     map[string]interface{} `json:"info"`
+	Nickname      string                 `json:"nick"`
+	Info          map[string]interface{} `json:"info"`
+	CurrentGameID string                 `json:"currentGameId"`
 
 	currentRoom *Room
 	password    string
@@ -124,12 +124,11 @@ func MakePlayer(nick string, password string) (*Player, error) {
 }
 
 func (p *Player) Game() *Game {
-	return GetGame(p.GameID)
+	return GetGame(p.CurrentGameID)
 }
 
 func (p *Player) CurrentRoom() *Room {
-	g := p.Game()
-	return g.GetRoom(p.GameID) // REVIEW
+	return p.currentRoom
 }
 
 func (p *Player) Send(method string, args ...interface{}) error {
