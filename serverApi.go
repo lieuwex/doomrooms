@@ -35,7 +35,6 @@ func removeGameServer(gs *GameServer) error {
 	i := GameServerIndex(GameServers, gs)
 	if i == -1 {
 		return fmt.Errorf("no matching server found")
-
 	}
 
 	GameServers[i] = GameServers[len(GameServers)-1]

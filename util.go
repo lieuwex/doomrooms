@@ -20,6 +20,15 @@ func GameServerIndex(servers []*GameServer, gs *GameServer) int {
 	return -1
 }
 
+func ConnectionIndex(connections []*Connection, conn *Connection) int {
+	for i, val := range connections {
+		if val == conn {
+			return i
+		}
+	}
+	return -1
+}
+
 func FileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {

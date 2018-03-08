@@ -25,12 +25,12 @@ func (r *Room) AddPlayer(player *Player) error {
 
 // REVIEW: do we want nickname instead?
 func (r *Room) InvitePlayer(player *Player) error {
-	return player.connection.Send("emit", "room-invite", r.ID)
+	return player.Send("emit", "room-invite", r.ID)
 }
 
 func (r *Room) Broadcast(method string, args ...interface{}) error {
 	for _, player := range r.Players {
-		err := player.connection.Send(method, args...)
+		err := player.Send(method, args...)
 		if err != nil {
 			return err
 		}

@@ -1,10 +1,10 @@
 package main
 
-func onPlayerCommand(player *Player, msg Message) {
+func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 	handled := false
 
 	reply := func(err string, res interface{}) {
-		player.connection.Reply(msg.ID, err, res)
+		conn.Reply(msg.ID, err, res)
 	}
 
 	handleCommand := func(method string, argCount int, fn func()) {

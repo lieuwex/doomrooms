@@ -10,9 +10,8 @@ import (
 var Games = make(map[string]*Game)
 
 type Game struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Players []*Player `json:"players"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 
 	rooms map[string]*Room
 
@@ -28,9 +27,8 @@ func MakeGame(id string, name string) (*Game, error) {
 	}
 
 	g := &Game{
-		ID:      id,
-		Name:    name,
-		Players: make([]*Player, 0),
+		ID:   id,
+		Name: name,
 
 		rooms: make(map[string]*Room),
 
@@ -83,15 +81,6 @@ func (g *Game) SearchRooms(name string) []*Room {
 	}
 
 	return res
-}
-
-func (g *Game) CheckNickname(nick string) bool {
-	for _, p := range g.Players {
-		if strings.ToLower(p.Nickname) == strings.ToLower(nick) {
-			return false
-		}
-	}
-	return true
 }
 
 func (g *Game) GameServer() *GameServer {
