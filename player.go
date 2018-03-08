@@ -36,7 +36,10 @@ func HandlePlayerConnection(conn *Connection) {
 			return
 		}
 
-		err = fmt.Errorf("TODO")
+		p = Players[msg.Args[0].(string)]
+		if p == nil {
+			err = fmt.Errorf("User not found")
+		}
 	case "make-player":
 		if !expectArgs(2) {
 			return
