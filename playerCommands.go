@@ -169,6 +169,28 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		reply("", nil)
 	})
 
+	handleRoomCommand("kick-player", 2, func() {
+		nick := msg.Args[0].(string)
+		reason := msg.Args[1].(string)
+		room := player.CurrentRoom()
+
+		if room.Admin != player {
+			reply("not-admin", nil)
+			return
+		}
+
+		p := GetPlayer(nick)
+		if p == nil {
+			reply("player-not-found", nil)
+			return
+		}
+
+		p.Send("emit", "kick", reason)
+		room.RemovePlayer(p)
+
+		reply("", nil)
+	})
+
 	handleRoomCommand("leave-room", 0, func() {
 		err := player.CurrentRoom().RemovePlayer(player)
 		if err != nil {
