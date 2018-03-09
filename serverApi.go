@@ -7,7 +7,8 @@ import (
 )
 
 type GameServer struct {
-	Connection *Connection
+	Connection    *Connection
+	NotifyOptions map[string]string
 }
 
 func (gs *GameServer) Game() *Game {
@@ -59,6 +60,11 @@ func ListenGameservers(host string, port string) error {
 		for {
 			gs := &GameServer{
 				Connection: <-comm.ConnectionCh(),
+				NotifyOptions: map[string]string{
+					"room-creation": "on",
+					"room-join":     "off",
+					"room-leave":    "off",
+				},
 			}
 			go HandleGameServer(gs)
 		}
@@ -147,6 +153,14 @@ func onGameServerCommand(gs *GameServer, msg Message) {
 
 		g.gameServer = gs
 		reply("", g)
+	})
+
+	handleCommand("set-notif-option", 2, func() {
+		key := msg.Args[0].(string)
+		val := msg.Args[1].(string)
+
+		gs.NotifyOptions[key] = val
+		reply("", gs.NotifyOptions)
 	})
 
 	handleCommand("message-player", 2, func() {
