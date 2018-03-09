@@ -122,6 +122,8 @@ func MakePlayer(nick string, password string) (*Player, error) {
 		Nickname: nick,
 		password: password,
 
+		Tags: make(map[string]interface{}),
+
 		connections: make([]*Connection, 0),
 		privateTags: make(map[string]map[string]interface{}),
 	}

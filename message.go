@@ -1,7 +1,7 @@
 package main
 
 type Message struct {
-	ID     uint64        `json:"id"` // REVIEW
+	ID     uint64        `json:"id"`
 	Method string        `json:"method"`
 	Args   []interface{} `json:"args"`
 }
@@ -15,7 +15,7 @@ func CreateMessage(id uint64, method string, args ...interface{}) Message {
 }
 
 type Result struct {
-	ID     uint64      `json:"id"` // REVIEW
+	ID     uint64      `json:"id"`
 	Error  string      `json:"err,omitempty"`
 	Result interface{} `json:"res,omitempty"`
 }
