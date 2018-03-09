@@ -9,6 +9,10 @@ import (
 
 var Players = make(map[string]*Player)
 
+func GetPlayer(nick string) *Player {
+	return Players[nick]
+}
+
 func HandlePlayerConnection(conn *Connection) {
 	defer conn.netConn.Close()
 

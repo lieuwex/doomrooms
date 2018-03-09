@@ -112,7 +112,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		nick := msg.Args[0].(string)
 		line := msg.Args[1].(string)
 
-		target := Players[nick]
+		target := GetPlayer(nick)
 		if target == nil {
 			reply("player-not-found", nil)
 			return
@@ -135,7 +135,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 
 	handleRoomCommand("invite-player", 1, func() {
 		nick := msg.Args[0].(string)
-		p := Players[nick]
+		p := GetPlayer(nick)
 		if p == nil {
 			reply("player-not-found", nil)
 			return

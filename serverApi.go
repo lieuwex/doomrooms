@@ -152,7 +152,7 @@ func onGameServerCommand(gs *GameServer, msg Message) {
 	handleCommand("get-private-player-tags", 1, func() {
 		nick := msg.Args[0].(string)
 
-		p := Players[nick]
+		p := GetPlayer(nick)
 		if p == nil {
 			reply("player-not-found", nil)
 		}
@@ -165,7 +165,7 @@ func onGameServerCommand(gs *GameServer, msg Message) {
 		nick := msg.Args[0].(string)
 		tags := msg.Args[1].(map[string]interface{})
 
-		p := Players[nick]
+		p := GetPlayer(nick)
 		if p == nil {
 			reply("player-not-found", nil)
 		}
