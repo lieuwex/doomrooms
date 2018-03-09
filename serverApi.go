@@ -227,6 +227,23 @@ func onGameServerCommand(gs *GameServer, msg Message) {
 		reply("", tags)
 	})
 
+	handleCommand("start-game", 1, func() {
+		roomID := msg.Args[0].(string)
+
+		room := gs.Game().GetRoom(roomID)
+		if room == nil {
+			reply("room-not-found", nil)
+		}
+
+		err := room.Start()
+		if err != nil {
+			reply(err.Error(), nil)
+			return
+		}
+
+		reply("", room)
+	})
+
 	if !handled {
 		reply("unknown command", nil)
 	}
