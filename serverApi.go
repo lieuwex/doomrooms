@@ -49,7 +49,7 @@ func removeGameServer(gs *GameServer) error {
 }
 
 func ListenGameservers(host string, port string) error {
-	comm := MakeTCPCommunicator()
+	comm := MakeTCPJSONCommunicator()
 	err := comm.Start(host, port)
 	if err != nil {
 		return err

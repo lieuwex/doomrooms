@@ -28,8 +28,8 @@ func MakeCommunicatorManager() *CommunicatorManager {
 	cm := &CommunicatorManager{
 		connCh: make(chan *Connection),
 		communicators: map[string]Communicator{
-			"player-tcp": MakeTCPCommunicator(),
-			"player-ws":  MakeWebsocketCommunicator(),
+			"player-tcp-json": MakeTCPJSONCommunicator(),
+			"player-ws-json":  MakeWebsocketJSONCommunicator(),
 		},
 		log: logrus.New(),
 	}

@@ -6,27 +6,27 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-type WebsocketCommunicator struct {
+type WebsocketJSONCommunicator struct {
 	started      bool
 	connectionCh chan *Connection
 }
 
-func MakeWebsocketCommunicator() *WebsocketCommunicator {
-	return &WebsocketCommunicator{
+func MakeWebsocketJSONCommunicator() *WebsocketJSONCommunicator {
+	return &WebsocketJSONCommunicator{
 		started:      false,
 		connectionCh: make(chan *Connection),
 	}
 }
 
-func (comm *WebsocketCommunicator) ConnectionCh() <-chan *Connection {
+func (comm *WebsocketJSONCommunicator) ConnectionCh() <-chan *Connection {
 	return comm.connectionCh
 }
 
-func (comm *WebsocketCommunicator) Started() bool {
+func (comm *WebsocketJSONCommunicator) Started() bool {
 	return comm.started
 }
 
-func (comm *WebsocketCommunicator) Start(host string, port string) error {
+func (comm *WebsocketJSONCommunicator) Start(host string, port string) error {
 	if comm.started {
 		return fmt.Errorf("already started")
 	}
@@ -36,7 +36,7 @@ func (comm *WebsocketCommunicator) Start(host string, port string) error {
 	return nil
 }
 
-func (comm *WebsocketCommunicator) Stop() error {
+func (comm *WebsocketJSONCommunicator) Stop() error {
 	if !comm.started {
 		return fmt.Errorf("not started")
 	}

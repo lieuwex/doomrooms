@@ -12,29 +12,29 @@ import (
 
 const delim = '\n'
 
-type TCPCommunicator struct {
+type TCPJSONCommunicator struct {
 	started      bool
 	listener     *net.TCPListener
 	connectionCh chan *Connection
 }
 
-func MakeTCPCommunicator() *TCPCommunicator {
-	return &TCPCommunicator{
+func MakeTCPJSONCommunicator() *TCPJSONCommunicator {
+	return &TCPJSONCommunicator{
 		started:      false,
 		listener:     nil,
 		connectionCh: make(chan *Connection),
 	}
 }
 
-func (comm *TCPCommunicator) ConnectionCh() <-chan *Connection {
+func (comm *TCPJSONCommunicator) ConnectionCh() <-chan *Connection {
 	return comm.connectionCh
 }
 
-func (comm *TCPCommunicator) Started() bool {
+func (comm *TCPJSONCommunicator) Started() bool {
 	return comm.started
 }
 
-func (comm *TCPCommunicator) Start(host string, port string) error {
+func (comm *TCPJSONCommunicator) Start(host string, port string) error {
 	if comm.started {
 		return fmt.Errorf("already started")
 	}
@@ -64,7 +64,7 @@ func (comm *TCPCommunicator) Start(host string, port string) error {
 	return nil
 }
 
-func (comm *TCPCommunicator) Stop() error {
+func (comm *TCPJSONCommunicator) Stop() error {
 	if !comm.started {
 		return fmt.Errorf("not started")
 	}
