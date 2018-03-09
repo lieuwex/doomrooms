@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Room struct {
 	ID      string                 `json:"id"`
 	Name    string                 `json:"name"`
@@ -23,8 +25,12 @@ func (r *Room) AddPlayer(player *Player) error {
 	return nil
 }
 
-// REVIEW: do we want nickname instead?
 func (r *Room) InvitePlayer(player *Player) error {
+	if PlayerIndex(r.invited, player) > -1 {
+		return fmt.Errorf("player already invited")
+	}
+
+	r.invited = append(r.invited, player) // REVIEW: safe?
 	return player.Send("emit", "room-invite", r.ID)
 }
 

@@ -133,6 +133,18 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 
 	// REVIEW: Team chat?
 
+	handleRoomCommand("invite-player", 1, func() {
+		nick := msg.Args[0].(string)
+		p := Players[nick]
+		if p == nil {
+			reply("player-not-found", nil)
+			return
+		}
+
+		player.CurrentRoom().InvitePlayer(p)
+		reply("", nil)
+	})
+
 	handleRoomCommand("start", 0, func() {
 		player.currentRoom.Broadcast("start", "jaja")
 
