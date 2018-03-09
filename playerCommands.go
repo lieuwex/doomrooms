@@ -34,7 +34,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 	handleGameCommand := func(method string, argCount int, fn func()) {
 		handleCommand(method, argCount, func() {
 			if player.Game() == nil {
-				reply("no game selected", nil)
+				reply("no game set", nil)
 				return
 			}
 
@@ -69,19 +69,34 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		reply("", g)
 	})
 
-	handleCommand("make-room", 1, func() {
-		name := msg.Args[0].(string)
+	handleCommand("send-private-chat", 2, func() {
+		nick := msg.Args[0].(string)
+		line := msg.Args[1].(string)
 
-		room := player.Game().MakeRoom(name)
+		target := GetPlayer(nick)
+		if target == nil {
+			reply("player-not-found", nil)
+			return
+		}
+
+		target.Send("emit", "private-chat", player.Nickname, line)
+		reply("", nil)
+	})
+
+	handleGameCommand("make-room", 1, func() {
+		name := msg.Args[0].(string)
+		game := player.Game()
+
+		room := game.MakeRoom(name)
 		room.AddPlayer(player)
 
-		player.Game().gameServer.Emit("room-creation", room, player)
+		game.gameServer.Emit("room-creation", room, player)
 		reply("", room)
 
 		player.currentRoom = room
 	})
 
-	handleCommand("join-room", 1, func() {
+	handleGameCommand("join-room", 1, func() {
 		id := msg.Args[0].(string)
 		room := player.Game().GetRoom(id)
 		if room == nil {
@@ -104,24 +119,10 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		player.currentRoom = room
 	})
 
-	handleCommand("search", 1, func() {
+	handleGameCommand("search", 1, func() {
 		query := msg.Args[0].(string)
 		rooms := player.Game().SearchRooms(query)
 		reply("", rooms)
-	})
-
-	handleCommand("send-private-chat", 2, func() {
-		nick := msg.Args[0].(string)
-		line := msg.Args[1].(string)
-
-		target := GetPlayer(nick)
-		if target == nil {
-			reply("player-not-found", nil)
-			return
-		}
-
-		target.Send("emit", "private-chat", player.Nickname, line)
-		reply("", nil)
 	})
 
 	handleRoomCommand("send-room-chat", 1, func() {
