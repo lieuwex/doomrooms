@@ -90,12 +90,13 @@ func HandlePlayerConnection(conn *Connection) {
 
 type Player struct {
 	Nickname      string                 `json:"nick"`
-	Info          map[string]interface{} `json:"info"`
+	Tags          map[string]interface{} `json:"tags"`
 	CurrentGameID string                 `json:"currentGameId"`
 
 	currentRoom *Room
 	password    string
 	connections []*Connection
+	privateTags map[string]map[string]interface{}
 }
 
 func checkNickname(nick string) bool {
@@ -118,6 +119,7 @@ func MakePlayer(nick string, password string) (*Player, error) {
 		password: password,
 
 		connections: make([]*Connection, 0),
+		privateTags: make(map[string]map[string]interface{}),
 	}
 	Players[nick] = p
 	return p, nil

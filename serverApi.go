@@ -149,6 +149,31 @@ func onGameServerCommand(gs *GameServer, msg Message) {
 		reply("", g)
 	})
 
+	handleCommand("get-private-player-tags", 1, func() {
+		nick := msg.Args[0].(string)
+
+		p := Players[nick]
+		if p == nil {
+			reply("player-not-found", nil)
+		}
+
+		tags := p.privateTags[gs.Game().ID]
+		reply("", tags)
+	})
+
+	handleCommand("set-private-player-tags", 2, func() {
+		nick := msg.Args[0].(string)
+		tags := msg.Args[1].(map[string]interface{})
+
+		p := Players[nick]
+		if p == nil {
+			reply("player-not-found", nil)
+		}
+
+		p.privateTags[gs.Game().ID] = tags
+		reply("", tags)
+	})
+
 	if !handled {
 		reply("unknown command", nil)
 	}
