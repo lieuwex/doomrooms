@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -33,7 +31,7 @@ func (conn *Connection) Send(method string, args ...interface{}) error {
 }
 
 func (conn *Connection) Reply(id uint64, err string, res interface{}) error {
-	return conn.writeres(Result{
+	return conn.writeRes(Result{
 		ID:     id,
 		Error:  err,
 		Result: res,
@@ -41,23 +39,17 @@ func (conn *Connection) Reply(id uint64, err string, res interface{}) error {
 }
 
 func (conn *Connection) write(msg Message) error {
-	bytes, err := json.Marshal(msg)
 	log.WithFields(log.Fields{
-		"data": string(bytes),
+		"data": msg,
 	}).Info("sending")
-	if err != nil {
-		return err
-	}
-	return conn.netConn.Write(bytes)
+
+	return conn.netConn.Write(msg)
 }
 
-func (conn *Connection) writeres(res Result) error { // HACK: REVIEW
-	bytes, err := json.Marshal(res)
+func (conn *Connection) writeRes(res Result) error {
 	log.WithFields(log.Fields{
-		"data": string(bytes),
+		"data": res,
 	}).Info("sending")
-	if err != nil {
-		return err
-	}
-	return conn.netConn.Write(bytes)
+
+	return conn.netConn.WriteRes(res)
 }

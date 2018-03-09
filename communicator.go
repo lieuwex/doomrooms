@@ -14,7 +14,8 @@ type Communicator interface {
 }
 
 type NetConnection interface {
-	Write(bytes []byte) error
+	Write(msg Message) error
+	WriteRes(res Result) error
 	Close() error
 }
 

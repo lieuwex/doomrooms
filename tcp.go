@@ -119,7 +119,24 @@ func makeConnection(socket *net.TCPConn) *Connection {
 	return conn
 }
 
-func (conn *TCPConnection) Write(bytes []byte) error {
+func (conn *TCPConnection) Write(msg Message) error {
+	bytes, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	return conn.write(bytes)
+}
+func (conn *TCPConnection) WriteRes(res Result) error {
+	bytes, err := json.Marshal(res)
+	if err != nil {
+		return err
+	}
+
+	return conn.write(bytes)
+}
+
+func (conn *TCPConnection) write(bytes []byte) error {
 	bytes = append(bytes, delim)
 
 	n, err := conn.socket.Write(bytes)
