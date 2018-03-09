@@ -27,8 +27,12 @@ func (r *Room) AddPlayer(player *Player) error {
 	return nil
 }
 
+func (r *Room) PlayerInvited(player *Player) bool {
+	return PlayerIndex(r.invited, player) > -1
+}
+
 func (r *Room) InvitePlayer(player *Player) error {
-	if PlayerIndex(r.invited, player) > -1 {
+	if r.PlayerInvited(player) {
 		return fmt.Errorf("player already invited")
 	}
 

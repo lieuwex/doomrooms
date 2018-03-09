@@ -23,7 +23,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		}
 		handled = true
 
-		if len(msg.Args) != argCount {
+		if len(msg.Args) != argCount && argCount != -1 {
 			reply("not enough arguments", nil)
 			return
 		}
@@ -99,16 +99,34 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		player.currentRoom = room
 	})
 
-	handleGameCommand("join-room", 1, func() {
+	handleGameCommand("join-room", -1, func() {
+		nargs := len(msg.Args)
+		if nargs == 0 {
+			reply("not-enough-args", nil)
+			return
+		}
+
 		id := msg.Args[0].(string)
+		givenPass := ""
+		if nargs > 1 {
+			givenPass = msg.Args[1].(string)
+		}
+
 		room := player.Game().GetRoom(id)
 		if room == nil {
 			reply("room not found", nil)
 			return
 		}
 
-		// TODO: do some checks whatever to check if the player can join the
-		// game.
+		if room.Hidden && !room.PlayerInvited(player) {
+			reply("not-invited", nil)
+			return
+		}
+
+		if pass := room.Options["password"]; pass != nil && givenPass != pass {
+			reply("incorrect-password", nil)
+			return
+		}
 
 		err := room.AddPlayer(player)
 		if err != nil {
