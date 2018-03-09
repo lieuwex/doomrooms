@@ -27,6 +27,24 @@ func (r *Room) AddPlayer(player *Player) error {
 	return nil
 }
 
+func (r *Room) RemovePlayer(player *Player) error {
+	i := PlayerIndex(r.invited, player)
+	if i == -1 {
+		return fmt.Errorf("player not found")
+	}
+
+	r.Players = append(r.Players[:i], r.Players[i+1:]...)
+
+	r.Broadcast("emit", "player-leave", player.Nickname)
+
+	if r.Admin == player {
+		r.Admin = r.Players[0]
+		r.Broadcast("emit", "admin-change", r.Admin.Nickname)
+	}
+
+	return nil
+}
+
 func (r *Room) PlayerInvited(player *Player) bool {
 	return PlayerIndex(r.invited, player) > -1
 }

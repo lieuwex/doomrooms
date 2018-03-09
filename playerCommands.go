@@ -169,6 +169,16 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		reply("", nil)
 	})
 
+	handleRoomCommand("leave-room", 0, func() {
+		err := player.CurrentRoom().RemovePlayer(player)
+		if err != nil {
+			reply(err.Error(), nil)
+			return
+		}
+
+		reply("", nil)
+	})
+
 	handleRoomCommand("start", 0, func() {
 		room := player.CurrentRoom()
 
