@@ -7,7 +7,9 @@ type Room struct {
 	Name    string                 `json:"name"`
 	Hidden  bool                   `json:"hidden"`
 	Options map[string]interface{} `json:"options"`
-	Players []*Player              `json:"players"`
+
+	Players []*Player `json:"players"`
+	Admin   *Player   `json:"admin"`
 
 	invited []*Player // REVIEW: hidden?
 	game    *Game
@@ -46,4 +48,11 @@ func (r *Room) Broadcast(method string, args ...interface{}) error {
 
 func (r *Room) Game() *Game {
 	return r.game
+}
+
+func (r *Room) Start() error {
+	r.Broadcast("game-start", r)
+	r.Game().GameServer().Emit("game-start", r)
+
+	return nil
 }

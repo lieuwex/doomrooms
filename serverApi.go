@@ -79,6 +79,8 @@ func ListenGameservers(host string, port string) error {
 					"room-creation": "on",
 					"room-join":     "off",
 					"room-leave":    "off",
+
+					"game-start": "on", // why would anyone want to set this to "off"?
 				},
 			}
 			go HandleGameServer(gs)

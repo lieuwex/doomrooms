@@ -47,11 +47,15 @@ func GetGame(id string) *Game {
 	return Games[id]
 }
 
-func (g *Game) MakeRoom(name string) *Room {
+func (g *Game) MakeRoom(creator *Player, name string, hidden bool, options map[string]interface{}) *Room {
 	id := g.idGen.UniqIDf() // this should always be unique
 	room := &Room{
-		ID:   id,
-		Name: name,
+		ID:      id,
+		Name:    name,
+		Hidden:  hidden,
+		Options: options,
+
+		Admin: creator,
 
 		game: g, // REVIEW
 	}

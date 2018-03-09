@@ -83,14 +83,17 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		reply("", nil)
 	})
 
-	handleGameCommand("make-room", 1, func() {
+	handleGameCommand("make-room", 3, func() {
 		name := msg.Args[0].(string)
+		hidden := msg.Args[1].(bool)
+		options := msg.Args[2].(map[string]interface{})
+
 		game := player.Game()
 
-		room := game.MakeRoom(name)
+		room := game.MakeRoom(player, name, hidden, options)
 		room.AddPlayer(player)
 
-		game.gameServer.Emit("room-creation", room, player)
+		game.gameServer.Emit("room-creation", room)
 		reply("", room)
 
 		player.currentRoom = room
@@ -149,12 +152,20 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 	})
 
 	handleRoomCommand("start", 0, func() {
-		player.currentRoom.Broadcast("start", "jaja")
+		room := player.CurrentRoom()
 
-		// HACK: for demo
-		player.currentRoom.Game().GameServer().Connection.Send("gamestartofzo", player.currentRoom.ID)
+		if room.Admin != player {
+			reply("not-admin", nil)
+			return
+		}
 
-		reply("", "started!")
+		err := room.Start()
+		if err != nil {
+			reply(err.Error(), nil)
+			return
+		}
+
+		reply("", room)
 	})
 
 	if !handled {
