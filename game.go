@@ -68,12 +68,12 @@ func (g *Game) GetRoom(id string) *Room {
 }
 
 // TODO: also support some shit like r.Options
-func (g *Game) SearchRooms(name string) []*Room {
+func (g *Game) SearchRooms(name string, includeHidden bool) []*Room {
 	res := make([]*Room, 0)
 	name = strings.ToLower(name)
 
 	for _, r := range g.rooms {
-		if r.Hidden {
+		if r.Hidden && !includeHidden {
 			continue
 		}
 

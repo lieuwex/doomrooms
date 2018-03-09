@@ -122,9 +122,9 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		player.currentRoom = room
 	})
 
-	handleGameCommand("search", 1, func() {
+	handleGameCommand("search-rooms", 1, func() {
 		query := msg.Args[0].(string)
-		rooms := player.Game().SearchRooms(query)
+		rooms := player.Game().SearchRooms(query, false)
 		reply("", rooms)
 	})
 

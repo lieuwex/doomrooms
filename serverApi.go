@@ -180,6 +180,16 @@ func onGameServerCommand(gs *GameServer, msg Message) {
 		reply("", gs.NotifyOptions)
 	})
 
+	handleCommand("list-rooms", 0, func() {
+		reply("", gs.Game().rooms)
+	})
+
+	handleCommand("search-rooms", 1, func() {
+		query := msg.Args[0].(string)
+		rooms := gs.Game().SearchRooms(query, true)
+		reply("", rooms)
+	})
+
 	handleCommand("message-player", 2, func() {
 		nick := msg.Args[0].(string)
 		thing := msg.Args[1]
