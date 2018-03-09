@@ -108,6 +108,20 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		reply("", rooms)
 	})
 
+	handleCommand("send-private-chat", 2, func() {
+		nick := msg.Args[0].(string)
+		line := msg.Args[1].(string)
+
+		target := Players[nick]
+		if target == nil {
+			reply("player-not-found", nil)
+			return
+		}
+
+		target.Send("emit", "private-chat", player.Nickname, line)
+		reply("", nil)
+	})
+
 	handleRoomCommand("send-room-chat", 1, func() {
 		line := msg.Args[0].(string)
 		players := roomOthers()
