@@ -20,6 +20,21 @@ func (gs *GameServer) Game() *Game {
 	return nil
 }
 
+func (gs *GameServer) Send(method string, args ...interface{}) error {
+	return gs.Connection.Send(method, args...)
+}
+
+func (gs *GameServer) Emit(event string, args ...interface{}) error {
+	val := gs.NotifyOptions[event]
+	b := val == "on" || val == ""
+
+	if b {
+		args = append([]interface{}{event}, args...)
+		return gs.Send("emit", args...)
+	}
+	return nil
+}
+
 var GameServers = make([]*GameServer, 0)
 
 func addGameServer(gs *GameServer) error {

@@ -75,6 +75,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 		room := player.Game().MakeRoom(name)
 		room.AddPlayer(player)
 
+		player.Game().gameServer.Emit("room-creation", room, player)
 		reply("", room)
 
 		player.currentRoom = room
@@ -97,6 +98,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg Message) {
 			return
 		}
 
+		player.Game().gameServer.Emit("room-join", room, player)
 		reply("", room)
 
 		player.currentRoom = room
