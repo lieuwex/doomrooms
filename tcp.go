@@ -79,9 +79,27 @@ type TCPConnection struct {
 	socket net.Conn
 }
 
+func parseBytes(bytes []byte) Thing {
+	var msg Message
+	if json.Unmarshal(bytes, &msg) == nil {
+		return &msg
+	}
+
+	var res Result
+	if json.Unmarshal(bytes, &res) == nil {
+		return &res
+	}
+
+	log.WithFields(log.Fields{
+		"msg": string(bytes),
+	}).Error("invalid message received")
+
+	return nil
+}
+
 func makeConnection(socket *net.TCPConn) *Connection {
 	conn := &Connection{
-		ch: make(chan Message),
+		ch: make(chan Thing),
 
 		netConn:   &TCPConnection{socket},
 		currentID: 0,
@@ -102,15 +120,12 @@ func makeConnection(socket *net.TCPConn) *Connection {
 				return
 			}
 
-			var msg Message
-			if json.Unmarshal(raw, &msg) != nil {
-				log.WithFields(log.Fields{
-					"msg": string(raw),
-				}).Error("invalid message received")
+			msg := parseBytes(raw)
+			if msg == nil {
 				continue
 			}
-			if msg.ID > conn.currentID {
-				conn.currentID = msg.ID
+			if id := msg.GetID(); id > conn.currentID {
+				conn.currentID = id
 			}
 			conn.ch <- msg
 		}

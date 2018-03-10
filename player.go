@@ -16,11 +16,17 @@ func GetPlayer(nick string) *Player {
 func HandlePlayerConnection(conn *Connection) {
 	defer conn.netConn.Close()
 
-	msg := <-conn.Chan()
+	obj := <-conn.Chan()
 	if conn.closed {
 		log.Info("connection closed")
 		return
 	}
+
+	if obj.GetType() != TMessage {
+		// REVIEW: how to handle this?
+		return
+	}
+	msg := obj.GetMessage()
 
 	expectArgs := func(expected int) bool {
 		if len(msg.Args) != expected {
@@ -81,14 +87,20 @@ func HandlePlayerConnection(conn *Connection) {
 	conn.Reply(msg.ID, "", p)
 
 	for {
-		msg := <-conn.Chan()
+		obj := <-conn.Chan()
 		if conn.closed {
 			log.Info("connection closed")
 			break
 		}
 
-		// REVIEW
-		onPlayerCommand(p, conn, msg)
+		switch obj.GetType() {
+		case TMessage:
+			onPlayerCommand(p, conn, obj.GetMessage())
+		case TResult:
+			// TODO
+		default:
+			panic("unknown type")
+		}
 	}
 }
 

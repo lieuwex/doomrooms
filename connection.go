@@ -5,7 +5,7 @@ import (
 )
 
 type Connection struct {
-	ch chan Message
+	ch chan Thing
 
 	currentID uint64
 	netConn   NetConnection
@@ -14,7 +14,7 @@ type Connection struct {
 
 // var connections
 
-func (conn *Connection) Chan() <-chan Message {
+func (conn *Connection) Chan() <-chan Thing {
 	return conn.ch
 }
 

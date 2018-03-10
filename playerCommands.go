@@ -1,6 +1,6 @@
 package main
 
-func onPlayerCommand(player *Player, conn *Connection, msg Message) {
+func onPlayerCommand(player *Player, conn *Connection, msg *Message) {
 	handled := false
 
 	reply := func(err string, res interface{}) {
