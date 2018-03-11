@@ -20,7 +20,7 @@ func (gs *GameServer) Game() *Game {
 	return nil
 }
 
-func (gs *GameServer) Send(method string, args ...interface{}) error {
+func (gs *GameServer) Send(method string, args ...interface{}) (interface{}, error) {
 	return gs.Connection.Send(method, args...)
 }
 
@@ -30,7 +30,7 @@ func (gs *GameServer) Emit(event string, args ...interface{}) error {
 
 	if b {
 		args = append([]interface{}{event}, args...)
-		return gs.Send("emit", args...)
+		return gs.Emit("emit", args...)
 	}
 	return nil
 }

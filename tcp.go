@@ -108,8 +108,9 @@ func makeConnection(socket *net.TCPConn) *Connection {
 	conn := &Connection{
 		ch: make(chan Thing),
 
-		netConn:   &TCPConnection{socket},
-		currentID: 0,
+		netConn:       &TCPConnection{socket},
+		currentID:     0,
+		resultWaiters: make(map[uint64][]chan *Result),
 	}
 	reader := bufio.NewReader(socket)
 
@@ -134,6 +135,17 @@ func makeConnection(socket *net.TCPConn) *Connection {
 			if id := msg.GetID(); id > conn.currentID {
 				conn.currentID = id
 			}
+
+			// REVIEW
+			if msg.GetType() == TResult {
+				channels := conn.resultWaiters[msg.GetID()]
+				if channels != nil && len(channels) > 0 {
+					for _, ch := range channels {
+						ch <- msg.GetResult()
+					}
+				}
+			}
+
 			conn.ch <- msg
 		}
 	}()

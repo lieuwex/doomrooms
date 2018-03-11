@@ -55,12 +55,14 @@ func (r *Room) InvitePlayer(player *Player) error {
 	}
 
 	r.invited = append(r.invited, player) // REVIEW: safe?
-	return player.Send("emit", "room-invite", r.ID)
+
+	_, err := player.Send("emit", "room-invite", r.ID)
+	return err
 }
 
 func (r *Room) Broadcast(method string, args ...interface{}) error {
 	for _, player := range r.Players {
-		err := player.Send(method, args...)
+		_, err := player.Send(method, args...)
 		if err != nil {
 			return err
 		}

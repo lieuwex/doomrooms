@@ -8,6 +8,12 @@
   version = "v0.3.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/kmanley/golang-tuple"
+  packages = ["."]
+  revision = "6efac34f17ab1392725ac5c959556c405a8098da"
+
+[[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
@@ -37,6 +43,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ae8ae15947412a8f2761f00e25a12a42cb1faf676af05e7f5da55becb8f5fb77"
+  inputs-digest = "b39ab45de7c0ff0fa01babde76bb25b0d9498c4a0c3e9972e197cd43c300979d"
   solver-name = "gps-cdcl"
   solver-version = 1

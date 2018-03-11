@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kmanley/golang-tuple"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -151,13 +152,32 @@ func (p *Player) CurrentRoom() *Room {
 	return p.currentRoom
 }
 
-func (p *Player) Send(method string, args ...interface{}) error {
+func (p *Player) Send(method string, args ...interface{}) (interface{}, error) {
+	nconn := len(p.connections)
+	ch := make(chan *tuple.Tuple, nconn)
+
+	for _, connection := range p.connections {
+		go func(conn *Connection) {
+			res, err := conn.Send(method, args...)
+			ch <- tuple.NewTupleFromItems(res, err)
+		}(connection)
+	}
+
+	// REVIEW
+	first := <-ch
+	return first.Get(0), first.Get(1).(error)
+}
+
+func (p *Player) Emit(event string, args ...interface{}) error {
+	args = append([]interface{}{event}, args...)
+
 	for _, conn := range p.connections {
-		err := conn.Send(method, args...)
+		err := conn.Write("emit", args...)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
