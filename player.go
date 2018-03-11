@@ -96,7 +96,8 @@ func HandlePlayerConnection(conn *Connection) {
 
 		switch obj.GetType() {
 		case TMessage:
-			onPlayerCommand(p, conn, obj.GetMessage())
+			// REVIEW: do we want this to be a goroutine?
+			go onPlayerCommand(p, conn, obj.GetMessage())
 		case TResult:
 			// TODO
 		default:
