@@ -80,14 +80,21 @@ type TCPConnection struct {
 }
 
 func parseBytes(bytes []byte) Thing {
-	var msg Message
-	if json.Unmarshal(bytes, &msg) == nil {
-		return &msg
+	var m map[string]interface{}
+	if json.Unmarshal(bytes, &m) != nil {
+		return nil
 	}
 
-	var res Result
-	if json.Unmarshal(bytes, &res) == nil {
-		return &res
+	if m["method"] != nil {
+		var msg Message
+		if json.Unmarshal(bytes, &msg) == nil {
+			return &msg
+		}
+	} else {
+		var res Result
+		if json.Unmarshal(bytes, &res) == nil {
+			return &res
+		}
 	}
 
 	log.WithFields(log.Fields{
