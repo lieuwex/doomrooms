@@ -104,20 +104,13 @@ func HandleGameServer(gs *GameServer) {
 	defer removeGameServer(gs)
 
 	for {
-		obj := <-conn.Chan()
+		msg := <-conn.Chan()
 		if conn.closed {
 			log.Info("connection closed")
 			break
 		}
 
-		switch obj.GetType() {
-		case TMessage:
-			onGameServerCommand(gs, obj.GetMessage())
-		case TResult:
-			// TODO
-		default:
-			panic("unknown type")
-		}
+		onGameServerCommand(gs, msg)
 	}
 }
 

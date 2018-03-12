@@ -7,7 +7,7 @@ import (
 )
 
 type Connection struct {
-	ch chan Thing
+	ch chan *Message
 
 	currentID     uint64
 	netConn       NetConnection
@@ -17,7 +17,7 @@ type Connection struct {
 
 func MakeConnection(netConn NetConnection) (*Connection, error) {
 	conn := &Connection{
-		ch: make(chan Thing),
+		ch: make(chan *Message),
 
 		netConn:       netConn,
 		currentID:     0,
@@ -47,16 +47,17 @@ func MakeConnection(netConn NetConnection) (*Connection, error) {
 					}
 					conn.resultWaiters[msg.GetID()] = nil
 				}
+				continue
 			}
 
-			conn.ch <- msg
+			conn.ch <- msg.GetMessage()
 		}
 	}()
 
 	return conn, nil
 }
 
-func (conn *Connection) Chan() <-chan Thing {
+func (conn *Connection) Chan() <-chan *Message {
 	return conn.ch
 }
 
