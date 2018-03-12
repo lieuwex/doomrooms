@@ -45,6 +45,7 @@ func MakeConnection(netConn NetConnection) (*Connection, error) {
 					for _, ch := range channels {
 						ch <- msg.GetResult()
 					}
+					conn.resultWaiters[msg.GetID()] = nil
 				}
 			}
 
