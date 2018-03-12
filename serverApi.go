@@ -30,7 +30,7 @@ func (gs *GameServer) Emit(event string, args ...interface{}) error {
 
 	if b {
 		args = append([]interface{}{event}, args...)
-		return gs.Emit("emit", args...)
+		return gs.Connection.Write("emit", args...)
 	}
 	return nil
 }
