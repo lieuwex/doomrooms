@@ -15,18 +15,18 @@ const delim = '\n'
 type TCPJSONCommunicator struct {
 	started      bool
 	listener     *net.TCPListener
-	connectionCh chan *Connection
+	connectionCh chan NetConnection
 }
 
 func MakeTCPJSONCommunicator() *TCPJSONCommunicator {
 	return &TCPJSONCommunicator{
 		started:      false,
 		listener:     nil,
-		connectionCh: make(chan *Connection),
+		connectionCh: make(chan NetConnection),
 	}
 }
 
-func (comm *TCPJSONCommunicator) ConnectionCh() <-chan *Connection {
+func (comm *TCPJSONCommunicator) ConnectionCh() <-chan NetConnection {
 	return comm.connectionCh
 }
 
@@ -77,6 +77,8 @@ func (comm *TCPJSONCommunicator) Stop() error {
 
 type TCPConnection struct {
 	socket net.Conn
+	ch     chan Thing
+	closed bool
 }
 
 func parseBytes(bytes []byte) Thing {
@@ -104,13 +106,11 @@ func parseBytes(bytes []byte) Thing {
 	return nil
 }
 
-func makeConnection(socket *net.TCPConn) *Connection {
-	conn := &Connection{
-		ch: make(chan Thing),
-
-		netConn:       &TCPConnection{socket},
-		currentID:     0,
-		resultWaiters: make(map[uint64][]chan *Result),
+func makeConnection(socket *net.TCPConn) NetConnection {
+	netConn := &TCPConnection{
+		socket: socket,
+		ch:     make(chan Thing),
+		closed: false,
 	}
 	reader := bufio.NewReader(socket)
 
@@ -123,8 +123,8 @@ func makeConnection(socket *net.TCPConn) *Connection {
 						"error": err,
 					}).Error("error while reading from connection")
 				}
-				conn.closed = true // REVIEW
-				close(conn.ch)
+				netConn.closed = true
+				close(netConn.ch)
 				return
 			}
 
@@ -132,25 +132,12 @@ func makeConnection(socket *net.TCPConn) *Connection {
 			if msg == nil {
 				continue
 			}
-			if id := msg.GetID(); id > conn.currentID {
-				conn.currentID = id
-			}
 
-			// REVIEW
-			if msg.GetType() == TResult {
-				channels := conn.resultWaiters[msg.GetID()]
-				if channels != nil && len(channels) > 0 {
-					for _, ch := range channels {
-						ch <- msg.GetResult()
-					}
-				}
-			}
-
-			conn.ch <- msg
+			netConn.ch <- msg
 		}
 	}()
 
-	return conn
+	return netConn
 }
 
 func (conn *TCPConnection) Write(msg Message) error {
@@ -184,5 +171,18 @@ func (conn *TCPConnection) write(bytes []byte) error {
 }
 
 func (conn *TCPConnection) Close() error {
+	if conn.closed {
+		return nil
+	}
+
+	conn.closed = true
 	return conn.socket.Close()
+}
+
+func (conn *TCPConnection) Closed() bool {
+	return conn.closed
+}
+
+func (conn *TCPConnection) Channel() chan Thing {
+	return conn.ch
 }

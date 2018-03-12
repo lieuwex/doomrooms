@@ -7,7 +7,7 @@ import (
 )
 
 type Communicator interface {
-	ConnectionCh() <-chan *Connection
+	ConnectionCh() <-chan NetConnection
 	Started() bool
 	Start(host string, port string) error
 	Stop() error
@@ -16,7 +16,9 @@ type Communicator interface {
 type NetConnection interface {
 	Write(msg Message) error
 	WriteRes(res Result) error
+	Channel() chan Thing
 	Close() error
+	Closed() bool
 }
 
 type CommunicatorManager struct {
@@ -51,7 +53,13 @@ func (cm *CommunicatorManager) StartService(service string, host string, port st
 
 	go func() {
 		for {
-			cm.connCh <- <-comm.ConnectionCh()
+			netConn := <-comm.ConnectionCh()
+			conn, err := MakeConnection(netConn)
+			if err != nil {
+				// TODO
+				continue
+			}
+			cm.connCh <- conn
 		}
 	}()
 

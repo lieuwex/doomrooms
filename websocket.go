@@ -8,17 +8,17 @@ import (
 
 type WebsocketJSONCommunicator struct {
 	started      bool
-	connectionCh chan *Connection
+	connectionCh chan NetConnection
 }
 
 func MakeWebsocketJSONCommunicator() *WebsocketJSONCommunicator {
 	return &WebsocketJSONCommunicator{
 		started:      false,
-		connectionCh: make(chan *Connection),
+		connectionCh: make(chan NetConnection),
 	}
 }
 
-func (comm *WebsocketJSONCommunicator) ConnectionCh() <-chan *Connection {
+func (comm *WebsocketJSONCommunicator) ConnectionCh() <-chan NetConnection {
 	return comm.connectionCh
 }
 

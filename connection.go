@@ -15,6 +15,46 @@ type Connection struct {
 	resultWaiters map[uint64][]chan *Result
 }
 
+func MakeConnection(netConn NetConnection) (*Connection, error) {
+	conn := &Connection{
+		ch: make(chan Thing),
+
+		netConn:       netConn,
+		currentID:     0,
+		closed:        false,
+		resultWaiters: make(map[uint64][]chan *Result),
+	}
+
+	go func() {
+		for {
+			msg, ok := <-netConn.Channel()
+			if !ok {
+				conn.closed = true
+				close(conn.ch)
+				return
+			}
+
+			if id := msg.GetID(); id > conn.currentID {
+				conn.currentID = id
+			}
+
+			// REVIEW
+			if msg.GetType() == TResult {
+				channels := conn.resultWaiters[msg.GetID()]
+				if channels != nil && len(channels) > 0 {
+					for _, ch := range channels {
+						ch <- msg.GetResult()
+					}
+				}
+			}
+
+			conn.ch <- msg
+		}
+	}()
+
+	return conn, nil
+}
+
 func (conn *Connection) Chan() <-chan Thing {
 	return conn.ch
 }

@@ -166,6 +166,7 @@ func (p *Player) Send(method string, args ...interface{}) (interface{}, error) {
 
 	// REVIEW
 	first := <-ch
+	close(ch)
 	return first.Get(0), first.Get(1).(error)
 }
 

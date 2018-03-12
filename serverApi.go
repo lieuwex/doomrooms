@@ -73,8 +73,14 @@ func ListenGameservers(host string, port string) error {
 
 	go func() {
 		for {
+			netConn := <-comm.ConnectionCh()
+			conn, err := MakeConnection(netConn)
+			if err != nil {
+				// REVIEW
+				continue
+			}
 			gs := &GameServer{
-				Connection: <-comm.ConnectionCh(),
+				Connection: conn,
 				NotifyOptions: map[string]string{
 					"room-creation": "on",
 					"room-join":     "off",
