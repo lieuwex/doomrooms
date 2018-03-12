@@ -154,7 +154,14 @@ func (p *Player) Send(method string, args ...interface{}) (interface{}, error) {
 	// REVIEW
 	first := <-ch
 	close(ch)
-	return first.Get(0), first.Get(1).(error)
+
+	res := first.Get(0)
+	var err error
+	if rawErr := first.Get(1); rawErr != nil {
+		err = rawErr.(error)
+	}
+
+	return res, err
 }
 
 func (p *Player) Emit(event string, args ...interface{}) error {
