@@ -15,7 +15,7 @@ type Connection struct {
 	resultWaiters map[uint64][]chan *Result
 }
 
-func MakeConnection(netConn NetConnection) (*Connection, error) {
+func MakeConnection(netConn NetConnection) *Connection {
 	conn := &Connection{
 		ch: make(chan *Message),
 
@@ -54,7 +54,7 @@ func MakeConnection(netConn NetConnection) (*Connection, error) {
 		}
 	}()
 
-	return conn, nil
+	return conn
 }
 
 func (conn *Connection) Chan() <-chan *Message {

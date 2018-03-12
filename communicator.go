@@ -54,12 +54,7 @@ func (cm *CommunicatorManager) StartService(service string, host string, port st
 	go func() {
 		for {
 			netConn := <-comm.ConnectionCh()
-			conn, err := MakeConnection(netConn)
-			if err != nil {
-				// TODO
-				continue
-			}
-			cm.connCh <- conn
+			cm.connCh <- MakeConnection(netConn)
 		}
 	}()
 
