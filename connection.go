@@ -38,8 +38,8 @@ func MakeConnection(netConn NetConnection) *Connection {
 				conn.currentID = id
 			}
 
-			// REVIEW
-			if msg.GetType() == TResult {
+			switch msg.GetType() {
+			case TResult: // REVIEW
 				channels := conn.resultWaiters[msg.GetID()]
 				if channels != nil && len(channels) > 0 {
 					for _, ch := range channels {
@@ -47,10 +47,13 @@ func MakeConnection(netConn NetConnection) *Connection {
 					}
 					conn.resultWaiters[msg.GetID()] = nil
 				}
-				continue
-			}
 
-			conn.ch <- msg.GetMessage()
+			case TMessage:
+				conn.ch <- msg.GetMessage()
+
+			default: // REVIEW
+				panic("unknown type")
+			}
 		}
 	}()
 
