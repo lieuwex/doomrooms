@@ -218,6 +218,17 @@ func onPlayerCommand(player *Player, conn *Connection, msg *Message) {
 		reply("", room)
 	})
 
+	handleRoomCommand("message-game-server", -1, func() {
+		gs := player.Game().gameServer
+		res, err := gs.Send("player-message", msg.Args...)
+		if err != nil {
+			reply(err.Error(), nil)
+			return
+		}
+
+		reply("", res)
+	})
+
 	if !handled {
 		reply("unknown command", nil)
 	}
