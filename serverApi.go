@@ -123,7 +123,7 @@ func onGameServerCommand(gs *GameServer, msg *Message) {
 		}
 		handled = true
 
-		if len(msg.Args) != argCount {
+		if len(msg.Args) != argCount && argCount != -1 {
 			reply("not enough arguments", nil)
 			return
 		}
