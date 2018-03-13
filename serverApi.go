@@ -139,6 +139,10 @@ func onGameServerCommand(gs *GameServer, msg *Message) {
 		gameID := msg.Args[0].(string)
 		force := msg.Args[1].(bool)
 
+		if gs.Game() != nil {
+			// TODO: handle old game
+		}
+
 		g := GetGame(gameID)
 		if g == nil {
 			reply("game not found", nil)
@@ -161,6 +165,10 @@ func onGameServerCommand(gs *GameServer, msg *Message) {
 	handleCommand("make-game", 2, func() {
 		gameID := msg.Args[0].(string)
 		gameName := msg.Args[1].(string)
+
+		if gs.Game() != nil {
+			// TODO: handle old game
+		}
 
 		g, err := MakeGame(gameID, gameName)
 		if err != nil {
