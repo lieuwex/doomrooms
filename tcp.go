@@ -53,7 +53,9 @@ func (comm *TCPJSONCommunicator) Start(host string, port string) error {
 	go func() {
 		for {
 			socket, err := comm.listener.AcceptTCP()
-			if err != nil {
+			if !comm.started {
+				return
+			} else if err != nil {
 				fmt.Printf("err %s\n", err)
 			}
 
