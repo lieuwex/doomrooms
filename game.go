@@ -23,7 +23,7 @@ type Game struct {
 
 func MakeGame(id string, name string) (*Game, error) {
 	if Games[id] != nil {
-		return nil, fmt.Errorf("game with ID '%s' already exist", id)
+		return nil, fmt.Errorf("game with ID '%s' already exists", id)
 	}
 
 	g := &Game{
