@@ -41,9 +41,13 @@ func HandlePlayerConnection(conn *Connection) {
 			return
 		}
 
-		p = Players[msg.Args[0].(string)]
+		username := msg.Args[0].(string)
+		password := msg.Args[1].(string)
+		p = Players[username]
 		if p == nil {
 			err = fmt.Errorf("User not found")
+		} else if p.password != password {
+			err = fmt.Errorf("Invalid password")
 		}
 	case "make-player":
 		if !expectArgs(2) {
