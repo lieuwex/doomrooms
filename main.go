@@ -4,9 +4,20 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 
 	log "github.com/sirupsen/logrus"
 )
+
+func onInterrupt(fn func()) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		fn()
+		os.Exit(1)
+	}()
+}
 
 var configPath string
 
@@ -30,6 +41,11 @@ func main() {
 	}
 
 	cm := MakeCommunicatorManager()
+
+	onInterrupt(func() {
+		log.Info("stopping all running services")
+		cm.StopServices()
+	})
 
 	err = ReadConfig(cm, configPath)
 	if err != nil {

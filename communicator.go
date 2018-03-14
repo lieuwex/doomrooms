@@ -61,6 +61,16 @@ func (cm *CommunicatorManager) StartService(service string, host string, port st
 	return nil
 }
 
+func (cm *CommunicatorManager) StopServices() error {
+	for _, comm := range cm.communicators {
+		if err := comm.Stop(); err != nil {
+			// REVIEW
+			return err
+		}
+	}
+	return nil
+}
+
 func (cm *CommunicatorManager) ConnectionCh() <-chan *Connection {
 	return cm.connCh
 }
