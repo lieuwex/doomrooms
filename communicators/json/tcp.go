@@ -161,6 +161,6 @@ func (conn *TCPConnection) Closed() bool {
 	return conn.closed
 }
 
-func (conn *TCPConnection) Channel() chan types.Thing {
+func (conn *TCPConnection) Channel() <-chan types.Thing {
 	return conn.ch
 }

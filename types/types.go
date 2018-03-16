@@ -24,7 +24,7 @@ type Communicator interface {
 type NetConnection interface {
 	Write(msg Message) error
 	WriteRes(res Result) error
-	Channel() chan Thing
+	Channel() <-chan Thing
 	Close() error
 	Closed() bool
 }

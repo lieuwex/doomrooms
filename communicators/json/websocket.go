@@ -112,6 +112,6 @@ func (conn *WebsocketConnection) Closed() bool {
 	return conn.closed
 }
 
-func (conn *WebsocketConnection) Channel() chan types.Thing {
+func (conn *WebsocketConnection) Channel() <-chan types.Thing {
 	return conn.ch
 }
