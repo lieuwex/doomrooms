@@ -70,7 +70,7 @@ def extract(fname, initrecog, startrecog, endrecog, finrecog, infofind, numargsf
 gentries = []
 
 
-extract("player.go",
+extract("connections/player.go",
         lambda line: re.match(r"\s*switch msg\.Method", line),
         lambda line: re.match(r"\s*case\s+\"([^\"]*)\"", line).group(1),
         lambda line: re.match(r"\s*(case\s+|default:)", line),
@@ -79,7 +79,7 @@ extract("player.go",
         lambda line: int(re.search(r"expectArgs\(([^)]*)\)", line).group(1)),
         lambda line: re.search(r"(?:(\w*)\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
 
-extract("playerCommands.go",
+extract("connections/playerCommands.go",
         lambda line: re.match(r"func onPlayerCommand", line),
         lambda line: re.match(r"\thandle(?:Game|Room)?Command\(\"([^\"]*)\"", line).group(1),
         lambda line: re.match(r"\t\}\)", line),
@@ -88,7 +88,7 @@ extract("playerCommands.go",
         lambda line: int(re.match(r"\thandle(?:Game|Room)?Command\(\"[^\"]*\",\s*(\d+)", line).group(1)),
         lambda line: re.search(r"(?:(\w*)\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
 
-extract("serverApi.go",
+extract("connections/serverApi.go",
         lambda line: re.match(r"func onGameServerCommand", line),
         lambda line: re.match(r"\thandleCommand\(\"([^\"]*)\"", line).group(1),
         lambda line: re.match(r"\t\}\)", line),
