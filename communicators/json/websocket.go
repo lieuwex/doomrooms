@@ -1,6 +1,7 @@
-package main
+package json
 
 import (
+	"doomrooms/types"
 	"fmt"
 	"net/http"
 
@@ -9,7 +10,7 @@ import (
 
 type WebsocketJSONCommunicator struct {
 	started      bool
-	connectionCh chan NetConnection
+	connectionCh chan types.NetConnection
 	server       *http.Server
 	openCh       chan bool
 }
@@ -17,12 +18,12 @@ type WebsocketJSONCommunicator struct {
 func MakeWebsocketJSONCommunicator() *WebsocketJSONCommunicator {
 	return &WebsocketJSONCommunicator{
 		started:      false,
-		connectionCh: make(chan NetConnection),
+		connectionCh: make(chan types.NetConnection),
 		openCh:       make(chan bool),
 	}
 }
 
-func (comm *WebsocketJSONCommunicator) ConnectionCh() <-chan NetConnection {
+func (comm *WebsocketJSONCommunicator) ConnectionCh() <-chan types.NetConnection {
 	return comm.connectionCh
 }
 
@@ -61,14 +62,14 @@ func (comm *WebsocketJSONCommunicator) Stop() error {
 
 type WebsocketConnection struct {
 	socket *websocket.Conn
-	ch     chan Thing
+	ch     chan types.Thing
 	closed bool
 }
 
-func makeWsConnection(ws *websocket.Conn) NetConnection {
+func makeWsConnection(ws *websocket.Conn) types.NetConnection {
 	netConn := &WebsocketConnection{
 		socket: ws,
-		ch:     make(chan Thing),
+		ch:     make(chan types.Thing),
 		closed: false,
 	}
 
@@ -96,10 +97,10 @@ func makeWsConnection(ws *websocket.Conn) NetConnection {
 	return netConn
 }
 
-func (conn *WebsocketConnection) Write(msg Message) error {
+func (conn *WebsocketConnection) Write(msg types.Message) error {
 	return websocket.JSON.Send(conn.socket, msg)
 }
-func (conn *WebsocketConnection) WriteRes(res Result) error {
+func (conn *WebsocketConnection) WriteRes(res types.Result) error {
 	return websocket.JSON.Send(conn.socket, res)
 }
 
@@ -111,6 +112,6 @@ func (conn *WebsocketConnection) Closed() bool {
 	return conn.closed
 }
 
-func (conn *WebsocketConnection) Channel() chan Thing {
+func (conn *WebsocketConnection) Channel() chan types.Thing {
 	return conn.ch
 }

@@ -1,38 +1,25 @@
-package main
+package doomrooms
 
 import (
+	"doomrooms/communicators/json"
+	"doomrooms/types"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
 )
 
-type Communicator interface {
-	ConnectionCh() <-chan NetConnection
-	Started() bool
-	Start(host string, port string) error
-	Stop() error
-}
-
-type NetConnection interface {
-	Write(msg Message) error
-	WriteRes(res Result) error
-	Channel() chan Thing
-	Close() error
-	Closed() bool
-}
-
 type CommunicatorManager struct {
 	connCh        chan *Connection
-	communicators map[string]Communicator
+	communicators map[string]types.Communicator
 	log           *logrus.Logger
 }
 
 func MakeCommunicatorManager() *CommunicatorManager {
 	cm := &CommunicatorManager{
 		connCh: make(chan *Connection),
-		communicators: map[string]Communicator{
-			"player-tcp-json": MakeTCPJSONCommunicator(),
-			"player-ws-json":  MakeWebsocketJSONCommunicator(),
+		communicators: map[string]types.Communicator{
+			"player-tcp-json": json.MakeTCPJSONCommunicator(),
+			"player-ws-json":  json.MakeWebsocketJSONCommunicator(),
 		},
 		log: logrus.New(),
 	}

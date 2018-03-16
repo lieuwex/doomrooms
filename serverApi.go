@@ -1,7 +1,10 @@
-package main
+package doomrooms
 
 import (
 	"fmt"
+
+	"doomrooms/communicators/json"
+	"doomrooms/types"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -65,7 +68,7 @@ func removeGameServer(gs *GameServer) error {
 }
 
 func ListenGameservers(host string, port string) error {
-	comm := MakeTCPJSONCommunicator()
+	comm := json.MakeTCPJSONCommunicator()
 	err := comm.Start(host, port)
 	if err != nil {
 		return err
@@ -109,7 +112,7 @@ func HandleGameServer(gs *GameServer) {
 	}
 }
 
-func onGameServerCommand(gs *GameServer, msg *Message) {
+func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	handled := false
 	conn := gs.Connection
 

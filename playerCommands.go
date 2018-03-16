@@ -1,6 +1,8 @@
-package main
+package doomrooms
 
-func onPlayerCommand(player *Player, conn *Connection, msg *Message) {
+import "doomrooms/types"
+
+func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	handled := false
 
 	reply := func(err string, res interface{}) {

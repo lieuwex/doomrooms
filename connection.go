@@ -1,28 +1,29 @@
-package main
+package doomrooms
 
 import (
+	"doomrooms/types"
 	"errors"
 
 	log "github.com/sirupsen/logrus"
 )
 
 type Connection struct {
-	ch chan *Message
+	ch chan *types.Message
 
 	currentID     uint64
-	netConn       NetConnection
+	netConn       types.NetConnection
 	closed        bool
-	resultWaiters map[uint64][]chan *Result
+	resultWaiters map[uint64][]chan *types.Result
 }
 
-func MakeConnection(netConn NetConnection) *Connection {
+func MakeConnection(netConn types.NetConnection) *Connection {
 	conn := &Connection{
-		ch: make(chan *Message),
+		ch: make(chan *types.Message),
 
 		netConn:       netConn,
 		currentID:     0,
 		closed:        false,
-		resultWaiters: make(map[uint64][]chan *Result),
+		resultWaiters: make(map[uint64][]chan *types.Result),
 	}
 
 	go func() {
@@ -39,7 +40,7 @@ func MakeConnection(netConn NetConnection) *Connection {
 			}
 
 			switch msg.GetType() {
-			case TResult: // REVIEW
+			case types.TResult: // REVIEW
 				channels := conn.resultWaiters[msg.GetID()]
 				if channels != nil && len(channels) > 0 {
 					for _, ch := range channels {
@@ -48,7 +49,7 @@ func MakeConnection(netConn NetConnection) *Connection {
 					conn.resultWaiters[msg.GetID()] = nil
 				}
 
-			case TMessage:
+			case types.TMessage:
 				conn.ch <- msg.GetMessage()
 
 			default: // REVIEW
@@ -60,7 +61,7 @@ func MakeConnection(netConn NetConnection) *Connection {
 	return conn
 }
 
-func (conn *Connection) Chan() <-chan *Message {
+func (conn *Connection) Chan() <-chan *types.Message {
 	return conn.ch
 }
 
@@ -69,7 +70,7 @@ func (conn *Connection) Write(method string, args ...interface{}) error {
 		args = make([]interface{}, 0)
 	}
 	conn.currentID++
-	return conn.write(Message{
+	return conn.write(types.Message{
 		ID:     conn.currentID,
 		Method: method,
 		Args:   args,
@@ -78,9 +79,9 @@ func (conn *Connection) Write(method string, args ...interface{}) error {
 
 func (conn *Connection) Send(method string, args ...interface{}) (interface{}, error) {
 	id := conn.currentID + 1
-	ch := make(chan *Result)
+	ch := make(chan *types.Result)
 	if conn.resultWaiters[id] == nil {
-		conn.resultWaiters[id] = []chan *Result{ch}
+		conn.resultWaiters[id] = []chan *types.Result{ch}
 	} else {
 		conn.resultWaiters[id] = append(conn.resultWaiters[id], ch)
 	}
@@ -100,14 +101,14 @@ func (conn *Connection) Send(method string, args ...interface{}) (interface{}, e
 }
 
 func (conn *Connection) Reply(id uint64, err string, res interface{}) error {
-	return conn.writeRes(Result{
+	return conn.writeRes(types.Result{
 		ID:     id,
 		Error:  err,
 		Result: res,
 	})
 }
 
-func (conn *Connection) write(msg Message) error {
+func (conn *Connection) write(msg types.Message) error {
 	log.WithFields(log.Fields{
 		"data": msg,
 	}).Info("sending")
@@ -115,7 +116,7 @@ func (conn *Connection) write(msg Message) error {
 	return conn.netConn.Write(msg)
 }
 
-func (conn *Connection) writeRes(res Result) error {
+func (conn *Connection) writeRes(res types.Result) error {
 	log.WithFields(log.Fields{
 		"data": res,
 	}).Info("sending")

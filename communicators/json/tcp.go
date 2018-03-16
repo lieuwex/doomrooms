@@ -1,7 +1,8 @@
-package main
+package json
 
 import (
 	"bufio"
+	"doomrooms/types"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,18 +16,18 @@ const delim = '\n'
 type TCPJSONCommunicator struct {
 	started      bool
 	listener     *net.TCPListener
-	connectionCh chan NetConnection
+	connectionCh chan types.NetConnection
 }
 
 func MakeTCPJSONCommunicator() *TCPJSONCommunicator {
 	return &TCPJSONCommunicator{
 		started:      false,
 		listener:     nil,
-		connectionCh: make(chan NetConnection),
+		connectionCh: make(chan types.NetConnection),
 	}
 }
 
-func (comm *TCPJSONCommunicator) ConnectionCh() <-chan NetConnection {
+func (comm *TCPJSONCommunicator) ConnectionCh() <-chan types.NetConnection {
 	return comm.connectionCh
 }
 
@@ -79,23 +80,23 @@ func (comm *TCPJSONCommunicator) Stop() error {
 
 type TCPConnection struct {
 	socket net.Conn
-	ch     chan Thing
+	ch     chan types.Thing
 	closed bool
 }
 
-func parseBytes(bytes []byte) Thing {
+func parseBytes(bytes []byte) types.Thing {
 	var m map[string]interface{}
 	if json.Unmarshal(bytes, &m) != nil {
 		return nil
 	}
 
 	if m["method"] != nil {
-		var msg Message
+		var msg types.Message
 		if json.Unmarshal(bytes, &msg) == nil {
 			return &msg
 		}
 	} else {
-		var res Result
+		var res types.Result
 		if json.Unmarshal(bytes, &res) == nil {
 			return &res
 		}
@@ -108,10 +109,10 @@ func parseBytes(bytes []byte) Thing {
 	return nil
 }
 
-func makeConnection(socket *net.TCPConn) NetConnection {
+func makeConnection(socket *net.TCPConn) types.NetConnection {
 	netConn := &TCPConnection{
 		socket: socket,
-		ch:     make(chan Thing),
+		ch:     make(chan types.Thing),
 		closed: false,
 	}
 	reader := bufio.NewReader(socket)
@@ -142,7 +143,7 @@ func makeConnection(socket *net.TCPConn) NetConnection {
 	return netConn
 }
 
-func (conn *TCPConnection) Write(msg Message) error {
+func (conn *TCPConnection) Write(msg types.Message) error {
 	bytes, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -150,7 +151,7 @@ func (conn *TCPConnection) Write(msg Message) error {
 
 	return conn.write(bytes)
 }
-func (conn *TCPConnection) WriteRes(res Result) error {
+func (conn *TCPConnection) WriteRes(res types.Result) error {
 	bytes, err := json.Marshal(res)
 	if err != nil {
 		return err
@@ -185,6 +186,6 @@ func (conn *TCPConnection) Closed() bool {
 	return conn.closed
 }
 
-func (conn *TCPConnection) Channel() chan Thing {
+func (conn *TCPConnection) Channel() chan types.Thing {
 	return conn.ch
 }
