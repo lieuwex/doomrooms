@@ -1,4 +1,4 @@
-package doomrooms
+package connections
 
 import (
 	"fmt"
@@ -40,8 +40,17 @@ func (gs *GameServer) Emit(event string, args ...interface{}) error {
 
 var GameServers = make([]*GameServer, 0)
 
+func gameServerIndex(gs *GameServer) int {
+	for i, x := range GameServers {
+		if x == gs {
+			return i
+		}
+	}
+	return -1
+}
+
 func addGameServer(gs *GameServer) error {
-	i := GameServerIndex(GameServers, gs)
+	i := gameServerIndex(gs)
 	if i != -1 {
 		return fmt.Errorf("server already added")
 	}
@@ -51,7 +60,7 @@ func addGameServer(gs *GameServer) error {
 	return nil
 }
 func removeGameServer(gs *GameServer) error {
-	i := GameServerIndex(GameServers, gs)
+	i := gameServerIndex(gs)
 	if i == -1 {
 		return fmt.Errorf("no matching server found")
 	}
@@ -96,14 +105,14 @@ func ListenGameservers(host string, port string) error {
 
 func HandleGameServer(gs *GameServer) {
 	conn := gs.Connection
-	defer conn.netConn.Close()
+	defer conn.Close()
 
 	addGameServer(gs)
 	defer removeGameServer(gs)
 
 	for {
 		msg := <-conn.Chan()
-		if conn.closed {
+		if conn.Closed() {
 			log.Info("connection closed")
 			break
 		}

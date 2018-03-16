@@ -1,6 +1,10 @@
 package doomrooms
 
 import (
+	"doomrooms/communicators"
+	"doomrooms/config"
+	"doomrooms/connections"
+	"doomrooms/utils"
 	"flag"
 	"fmt"
 	"os"
@@ -28,10 +32,10 @@ func parseFlags() {
 }
 
 func main() {
-	SetLogrusFormatter()
+	utils.SetLogrusFormatter()
 	parseFlags()
 
-	exists, err := FileExists(configPath)
+	exists, err := utils.FileExists(configPath)
 	if err != nil {
 		panic(err)
 	} else if !exists {
@@ -40,14 +44,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	cm := MakeCommunicatorManager()
+	cm := communicators.MakeCommunicatorManager()
 
 	onInterrupt(func() {
 		log.Info("stopping all running services")
 		cm.StopServices()
 	})
 
-	err = ReadConfig(cm, configPath)
+	err = config.ReadConfig(cm, configPath)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
@@ -59,6 +63,6 @@ func main() {
 		log.WithFields(log.Fields{
 			"conn": connection,
 		}).Info("got new connection in main.go")
-		go HandlePlayerConnection(connection)
+		go connections.HandlePlayerConnection(connection)
 	}
 }

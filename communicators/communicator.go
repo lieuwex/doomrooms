@@ -1,34 +1,37 @@
-package doomrooms
+package communicators
 
 import (
 	"doomrooms/communicators/json"
+	"doomrooms/connections"
 	"doomrooms/types"
+	"doomrooms/utils"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
 )
 
 type CommunicatorManager struct {
-	connCh        chan *Connection
-	communicators map[string]types.Communicator
-	log           *logrus.Logger
+	Log           *logrus.Logger
+	Communicators map[string]types.Communicator
+
+	connCh chan *connections.Connection
 }
 
 func MakeCommunicatorManager() *CommunicatorManager {
 	cm := &CommunicatorManager{
-		connCh: make(chan *Connection),
-		communicators: map[string]types.Communicator{
+		connCh: make(chan *connections.Connection),
+		Communicators: map[string]types.Communicator{
 			"player-tcp-json": json.MakeTCPJSONCommunicator(),
 			"player-ws-json":  json.MakeWebsocketJSONCommunicator(),
 		},
-		log: logrus.New(),
+		Log: logrus.New(),
 	}
-	cm.log.Formatter = Formatter
+	cm.Log.Formatter = utils.Formatter
 	return cm
 }
 
 func (cm *CommunicatorManager) StartService(service string, host string, port string) error {
-	comm := cm.communicators[service]
+	comm := cm.Communicators[service]
 	if comm == nil {
 		return fmt.Errorf("no service with name '%s' found", service)
 	}
@@ -41,7 +44,7 @@ func (cm *CommunicatorManager) StartService(service string, host string, port st
 	go func() {
 		for {
 			netConn := <-comm.ConnectionCh()
-			cm.connCh <- MakeConnection(netConn)
+			cm.connCh <- connections.MakeConnection(netConn)
 		}
 	}()
 
@@ -49,7 +52,7 @@ func (cm *CommunicatorManager) StartService(service string, host string, port st
 }
 
 func (cm *CommunicatorManager) StopServices() error {
-	for _, comm := range cm.communicators {
+	for _, comm := range cm.Communicators {
 		if err := comm.Stop(); err != nil {
 			// REVIEW
 			return err
@@ -58,6 +61,6 @@ func (cm *CommunicatorManager) StopServices() error {
 	return nil
 }
 
-func (cm *CommunicatorManager) ConnectionCh() <-chan *Connection {
+func (cm *CommunicatorManager) ConnectionCh() <-chan *connections.Connection {
 	return cm.connCh
 }

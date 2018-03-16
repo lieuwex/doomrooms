@@ -1,6 +1,8 @@
-package doomrooms
+package config
 
 import (
+	"doomrooms/communicators"
+	"doomrooms/connections"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -15,7 +17,7 @@ type listenerSetting struct {
 	Timeout uint
 }
 
-func HandleService(cm *CommunicatorManager, service string, settings listenerSetting) error {
+func HandleService(cm *communicators.CommunicatorManager, service string, settings listenerSetting) error {
 	if settings.Port == 0 {
 		return fmt.Errorf("port required")
 	}
@@ -23,7 +25,7 @@ func HandleService(cm *CommunicatorManager, service string, settings listenerSet
 
 	var err error
 	if service == "gameserver-tcp-json" {
-		err = ListenGameservers(settings.Host, portStr)
+		err = connections.ListenGameservers(settings.Host, portStr)
 	} else {
 		err = cm.StartService(service, settings.Host, portStr)
 	}
@@ -32,7 +34,7 @@ func HandleService(cm *CommunicatorManager, service string, settings listenerSet
 		return err
 	}
 
-	cm.log.WithFields(log.Fields{
+	cm.Log.WithFields(log.Fields{
 		"service": service,
 		"port":    settings.Port,
 	}).Info("started service")
@@ -40,7 +42,7 @@ func HandleService(cm *CommunicatorManager, service string, settings listenerSet
 	return nil
 }
 
-func ReadConfig(cm *CommunicatorManager, filename string) error {
+func ReadConfig(cm *communicators.CommunicatorManager, filename string) error {
 	log.WithFields(log.Fields{
 		"path": filename,
 	}).Info("reading config file")
@@ -62,9 +64,9 @@ func ReadConfig(cm *CommunicatorManager, filename string) error {
 		}
 	}
 
-	for name, comm := range cm.communicators {
+	for name, comm := range cm.Communicators {
 		if !comm.Started() {
-			cm.log.WithFields(log.Fields{
+			cm.Log.WithFields(log.Fields{
 				"service": name,
 			}).Warn("service not enabled")
 		}

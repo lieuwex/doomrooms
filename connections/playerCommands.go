@@ -1,4 +1,4 @@
-package doomrooms
+package connections
 
 import "doomrooms/types"
 

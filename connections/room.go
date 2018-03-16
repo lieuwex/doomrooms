@@ -1,4 +1,4 @@
-package doomrooms
+package connections
 
 import "fmt"
 
@@ -15,10 +15,19 @@ type Room struct {
 	game    *Game
 }
 
+func playerIndex(players []*Player, p *Player) int {
+	for i, x := range players {
+		if x == p {
+			return i
+		}
+	}
+	return -1
+}
+
 func (r *Room) AddPlayer(player *Player) error {
 	r.Broadcast("emit", "player-join", player.Nickname) // REVIEW
 
-	if i := PlayerIndex(r.invited, player); i > -1 {
+	if i := playerIndex(r.invited, player); i > -1 {
 		// remove player from invited
 		r.invited = append(r.invited[:i], r.invited[i+1:]...)
 	}
@@ -28,7 +37,7 @@ func (r *Room) AddPlayer(player *Player) error {
 }
 
 func (r *Room) RemovePlayer(player *Player) error {
-	i := PlayerIndex(r.invited, player)
+	i := playerIndex(r.invited, player)
 	if i == -1 {
 		return fmt.Errorf("player not found")
 	}
@@ -46,7 +55,7 @@ func (r *Room) RemovePlayer(player *Player) error {
 }
 
 func (r *Room) PlayerInvited(player *Player) bool {
-	return PlayerIndex(r.invited, player) > -1
+	return playerIndex(r.invited, player) > -1
 }
 
 func (r *Room) InvitePlayer(player *Player) error {

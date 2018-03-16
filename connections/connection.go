@@ -1,4 +1,4 @@
-package doomrooms
+package connections
 
 import (
 	"doomrooms/types"
@@ -122,4 +122,12 @@ func (conn *Connection) writeRes(res types.Result) error {
 	}).Info("sending")
 
 	return conn.netConn.WriteRes(res)
+}
+
+func (conn *Connection) Closed() bool {
+	return conn.closed
+}
+
+func (conn *Connection) Close() error {
+	return conn.netConn.Close()
 }

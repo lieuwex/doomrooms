@@ -1,4 +1,4 @@
-package doomrooms
+package utils
 
 import (
 	"fmt"

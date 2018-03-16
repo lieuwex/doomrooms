@@ -1,4 +1,4 @@
-package doomrooms
+package connections
 
 import (
 	"fmt"
@@ -182,9 +182,10 @@ func (p *Player) Emit(event string, args ...interface{}) error {
 }
 
 func (p *Player) addConnection(conn *Connection) error {
-	i := ConnectionIndex(p.connections, conn)
-	if i != -1 {
-		return fmt.Errorf("connection already added")
+	for _, x := range p.connections {
+		if x == conn {
+			return fmt.Errorf("connection already added")
+		}
 	}
 
 	p.connections = append(p.connections, conn) // REVIEW
@@ -192,12 +193,17 @@ func (p *Player) addConnection(conn *Connection) error {
 }
 
 func (p *Player) removeConnection(conn *Connection) error {
-	i := ConnectionIndex(p.connections, conn)
-	if i == -1 {
+	index := -1
+	for i, x := range p.connections {
+		if x == conn {
+			index = i
+		}
+	}
+	if index == -1 {
 		return fmt.Errorf("no matching connection found")
 	}
 
-	p.connections[i] = p.connections[len(p.connections)-1]
+	p.connections[index] = p.connections[len(p.connections)-1]
 	p.connections = p.connections[:len(p.connections)-1]
 
 	return nil

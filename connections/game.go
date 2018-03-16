@@ -1,6 +1,7 @@
-package doomrooms
+package connections
 
 import (
+	"doomrooms/utils"
 	"fmt"
 	"strings"
 
@@ -15,7 +16,7 @@ type Game struct {
 
 	rooms map[string]*Room
 
-	idGen      IDGenerator
+	idGen      utils.IDGenerator
 	gameServer *GameServer
 
 	// TODO: player connections
@@ -32,7 +33,7 @@ func MakeGame(id string, name string) (*Game, error) {
 
 		rooms: make(map[string]*Room),
 
-		idGen: MakeIDGenerator(),
+		idGen: utils.MakeIDGenerator(),
 	}
 	Games[id] = g // REVIEW: safe?
 
