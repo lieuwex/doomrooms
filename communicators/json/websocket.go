@@ -85,7 +85,7 @@ func makeWsConnection(ws *websocket.Conn) types.NetConnection {
 				return
 			}
 
-			msg := parseBytes(bytes) // HACK: we should define this function ourselves.
+			msg := parseBytes(bytes)
 			if msg == nil {
 				continue
 			}

@@ -60,7 +60,7 @@ func (comm *TCPJSONCommunicator) Start(host string, port string) error {
 				fmt.Printf("err %s\n", err)
 			}
 
-			comm.connectionCh <- makeConnection(socket)
+			comm.connectionCh <- makeTCPConnection(socket)
 		}
 	}()
 
@@ -84,32 +84,7 @@ type TCPConnection struct {
 	closed bool
 }
 
-func parseBytes(bytes []byte) types.Thing {
-	var m map[string]interface{}
-	if json.Unmarshal(bytes, &m) != nil {
-		return nil
-	}
-
-	if m["method"] != nil {
-		var msg types.Message
-		if json.Unmarshal(bytes, &msg) == nil {
-			return &msg
-		}
-	} else {
-		var res types.Result
-		if json.Unmarshal(bytes, &res) == nil {
-			return &res
-		}
-	}
-
-	log.WithFields(log.Fields{
-		"msg": string(bytes),
-	}).Error("invalid message received")
-
-	return nil
-}
-
-func makeConnection(socket *net.TCPConn) types.NetConnection {
+func makeTCPConnection(socket *net.TCPConn) types.NetConnection {
 	netConn := &TCPConnection{
 		socket: socket,
 		ch:     make(chan types.Thing),
