@@ -87,6 +87,11 @@ func makeWsConnection(ws *websocket.Conn) types.NetConnection {
 				return
 			}
 
+			select {
+			case netConn.rawCh <- bytes:
+			default:
+			}
+
 			msg := parseBytes(bytes)
 			if msg == nil {
 				continue
