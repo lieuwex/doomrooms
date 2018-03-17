@@ -15,7 +15,7 @@ func GetPlayer(nick string) *Player {
 }
 
 func HandlePlayerConnection(conn *Connection) {
-	defer conn.netConn.Close()
+	defer conn.Close()
 
 	msg := <-conn.Chan()
 	if conn.closed {
