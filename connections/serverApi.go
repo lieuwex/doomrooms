@@ -125,10 +125,6 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 		fn()
 	}
 
-	handleCommand("ping", 0, func() {
-		reply("", "pong")
-	})
-
 	handleCommand("attach-game", 2, func() {
 		gameID := msg.Args[0].(string)
 		force := msg.Args[1].(bool)

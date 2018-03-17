@@ -55,10 +55,6 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		})
 	}
 
-	handleCommand("ping", 0, func() {
-		reply("", "pong")
-	})
-
 	handleCommand("set-game", 1, func() {
 		gameID := msg.Args[0].(string)
 

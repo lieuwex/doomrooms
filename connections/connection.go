@@ -50,7 +50,13 @@ func MakeConnection(netConn types.NetConnection) *Connection {
 				}
 
 			case types.TMessage:
-				conn.ch <- msg.GetMessage()
+				m := msg.GetMessage()
+				if m.Method == "ping" {
+					conn.Reply(m.ID, "", "pong")
+					continue
+				}
+
+				conn.ch <- m.GetMessage()
 
 			default: // REVIEW
 				panic("unknown type")
