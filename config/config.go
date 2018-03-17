@@ -70,13 +70,5 @@ func ReadConfig(cm *communicators.CommunicatorManager, filename string) error {
 		}
 	}
 
-	for name, comm := range cm.Communicators {
-		if !comm.Started() {
-			cm.Log.WithFields(log.Fields{
-				"service": name,
-			}).Warn("service not enabled")
-		}
-	}
-
 	return nil
 }
