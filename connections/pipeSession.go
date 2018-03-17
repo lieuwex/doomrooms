@@ -33,42 +33,83 @@ func MakePipeSession() *PipeSession {
 	return session
 }
 
-func (ps *PipeSession) AddConnection(conn *Connection) error {
-	var recvCh chan []byte
-	var sendCh chan []byte
-
-	if ps.A == nil {
-		ps.A = conn
-
-		sendCh = ps.AToB
-		recvCh = ps.BToA
-	} else if ps.B == nil {
-		ps.B = conn
-
-		sendCh = ps.BToA
-		recvCh = ps.AToB
-	} else {
-		return fmt.Errorf("PipeSession is fully loaded")
+func (ps *PipeSession) BindConnection(conn *Connection) error {
+	isA, sendCh, recvCh, err := ps.addConnection(conn)
+	if err != nil {
+		return err
 	}
+	defer ps.removeConnection(conn)
+
 	waitch := make(chan bool)
 
 	go func() {
 		for {
-			bytes := <-recvCh
-			err := conn.netConn.WriteRaw(bytes)
-			if err != nil {
-				// TODO
+			select {
+			case <-waitch:
+				return
+
+			case bytes := <-recvCh:
+				err := conn.netConn.WriteRaw(bytes)
+				if err != nil {
+					fmt.Printf("ps err %#v\n", err)
+					close(waitch)
+					return
+				}
 			}
 		}
 	}()
 
 	go func() {
 		for {
-			bytes := <-conn.netConn.RawChannel()
-			sendCh <- bytes
+			select {
+			case <-waitch:
+				return
+
+			case bytes := <-conn.netConn.RawChannel():
+				if conn.netConn.Closed() {
+					close(waitch)
+					return
+				}
+				sendCh <- bytes
+			}
 		}
 	}()
 
 	<-waitch
+
+	var other *Connection
+	if isA {
+		other = ps.B
+	} else {
+		other = ps.A
+	}
+
+	if other != nil && !other.Closed() {
+		return other.Close()
+	}
+	return nil
+}
+
+func (ps *PipeSession) addConnection(conn *Connection) (isA bool, sendCh chan []byte, recvCh chan []byte, err error) {
+	if ps.A == nil {
+		ps.A = conn
+		return true, ps.AToB, ps.BToA, nil
+	} else if ps.B == nil {
+		ps.B = conn
+		return false, ps.BToA, ps.AToB, nil
+	}
+
+	return false, nil, nil, fmt.Errorf("PipeSession is fully loaded")
+}
+
+func (ps *PipeSession) removeConnection(conn *Connection) error {
+	if ps.A == conn {
+		ps.A = nil
+	} else if ps.B == conn {
+		ps.B = nil
+	} else {
+		return fmt.Errorf("Connection not bound to PipeSession")
+	}
+
 	return nil
 }

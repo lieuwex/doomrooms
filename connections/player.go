@@ -77,7 +77,7 @@ func HandlePlayerConnection(conn *Connection) {
 			return
 		}
 
-		err = ps.AddConnection(conn)
+		err = ps.BindConnection(conn)
 		if err != nil {
 			// TODO
 			fmt.Printf("PIPE ERROR: %#v\n", err)
