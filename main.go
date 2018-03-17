@@ -1,4 +1,4 @@
-package doomrooms
+package main
 
 import (
 	"doomrooms/communicators"
