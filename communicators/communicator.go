@@ -12,39 +12,49 @@ import (
 
 type CommunicatorManager struct {
 	Log           *logrus.Logger
-	Communicators map[string]types.Communicator
+	Communicators []types.Communicator
 
-	connCh chan *connections.Connection
+	playerConnCh     chan *connections.Connection
+	gameServerConnCh chan *connections.Connection
 }
 
 func MakeCommunicatorManager() *CommunicatorManager {
 	cm := &CommunicatorManager{
-		connCh: make(chan *connections.Connection),
-		Communicators: map[string]types.Communicator{
-			"player-tcp-json": json.MakeTCPJSONCommunicator(),
-			"player-ws-json":  json.MakeWebsocketJSONCommunicator(),
-		},
-		Log: logrus.New(),
+		playerConnCh:     make(chan *connections.Connection),
+		gameServerConnCh: make(chan *connections.Connection),
+		Log:              logrus.New(),
 	}
 	cm.Log.Formatter = utils.Formatter
 	return cm
 }
 
-func (cm *CommunicatorManager) StartService(service string, host string, port string) error {
-	comm := cm.Communicators[service]
-	if comm == nil {
+func (cm *CommunicatorManager) StartService(service string, host string, port string, isPlayer bool) error {
+	var comm types.Communicator
+	switch service {
+	case "tcp-json":
+		comm = json.MakeTCPJSONCommunicator()
+	case "ws-json":
+		comm = json.MakeWebsocketJSONCommunicator()
+	default:
 		return fmt.Errorf("no service with name '%s' found", service)
 	}
+
+	cm.Communicators = append(cm.Communicators, comm)
 
 	err := comm.Start(host, port)
 	if err != nil {
 		return err
 	}
 
+	connCh := cm.gameServerConnCh
+	if isPlayer {
+		connCh = cm.playerConnCh
+	}
+
 	go func() {
 		for {
 			netConn := <-comm.ConnectionCh()
-			cm.connCh <- connections.MakeConnection(netConn)
+			connCh <- connections.MakeConnection(netConn)
 		}
 	}()
 
@@ -61,6 +71,9 @@ func (cm *CommunicatorManager) StopServices() error {
 	return nil
 }
 
-func (cm *CommunicatorManager) ConnectionCh() <-chan *connections.Connection {
-	return cm.connCh
+func (cm *CommunicatorManager) PlayerConnectionCh() <-chan *connections.Connection {
+	return cm.playerConnCh
+}
+func (cm *CommunicatorManager) GameServerConnectionCh() <-chan *connections.Connection {
+	return cm.gameServerConnCh
 }

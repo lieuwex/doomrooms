@@ -62,11 +62,25 @@ func main() {
 		}).Fatal("error while reading config")
 	}
 
-	for {
-		connection := <-cm.ConnectionCh()
-		log.WithFields(log.Fields{
-			"conn": connection,
-		}).Info("got new connection in main.go")
-		go connections.HandlePlayerConnection(connection)
-	}
+	go func() {
+		for {
+			connection := <-cm.PlayerConnectionCh()
+			log.WithFields(log.Fields{
+				"conn": connection,
+			}).Info("got new player connection in main.go")
+			go connections.HandlePlayerConnection(connection)
+		}
+	}()
+
+	go func() {
+		for {
+			connection := <-cm.GameServerConnectionCh()
+			log.WithFields(log.Fields{
+				"conn": connection,
+			}).Info("got new game server connection in main.go")
+			go connections.HandleGameServerConnection(connection)
+		}
+	}()
+
+	select {}
 }

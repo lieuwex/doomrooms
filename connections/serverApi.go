@@ -3,7 +3,6 @@ package connections
 import (
 	"fmt"
 
-	"doomrooms/communicators/json"
 	"doomrooms/types"
 
 	log "github.com/sirupsen/logrus"
@@ -76,36 +75,19 @@ func removeGameServer(gs *GameServer) error {
 	return nil
 }
 
-func ListenGameservers(host string, port string) error {
-	comm := json.MakeTCPJSONCommunicator()
-	err := comm.Start(host, port)
-	if err != nil {
-		return err
-	}
-
-	go func() {
-		for {
-			netConn := <-comm.ConnectionCh()
-			gs := &GameServer{
-				Connection: MakeConnection(netConn),
-				NotifyOptions: map[string]string{
-					"room-creation": "on",
-					"room-join":     "off",
-					"room-leave":    "off",
-
-					"game-start": "on", // why would anyone want to set this to "off"?
-				},
-			}
-			go HandleGameServer(gs)
-		}
-	}()
-
-	return nil
-}
-
-func HandleGameServer(gs *GameServer) {
-	conn := gs.Connection
+func HandleGameServerConnection(conn *Connection) {
 	defer conn.Close()
+
+	gs := &GameServer{
+		Connection: conn,
+		NotifyOptions: map[string]string{
+			"room-creation": "on",
+			"room-join":     "off",
+			"room-leave":    "off",
+
+			"game-start": "on", // why would anyone want to set this to "off"?
+		},
+	}
 
 	addGameServer(gs)
 	defer removeGameServer(gs)

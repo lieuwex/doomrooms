@@ -2,7 +2,6 @@ package config
 
 import (
 	"doomrooms/communicators"
-	"doomrooms/connections"
 	"fmt"
 	"io/ioutil"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 )
 
 type listenerSetting struct {
+	Type    string
 	Host    string
 	Port    uint64
 	Timeout uint
@@ -23,13 +23,17 @@ func HandleService(cm *communicators.CommunicatorManager, service string, settin
 	}
 	portStr := strconv.FormatUint(settings.Port, 10)
 
-	var err error
-	if service == "gameserver-tcp-json" {
-		err = connections.ListenGameservers(settings.Host, portStr)
-	} else {
-		err = cm.StartService(service, settings.Host, portStr)
+	var isPlayer bool
+	switch settings.Type {
+	case "player":
+		isPlayer = true
+	case "gameserver":
+		isPlayer = false
+	default:
+		return fmt.Errorf("unknown type '%s'", settings.Type)
 	}
 
+	err := cm.StartService(service, settings.Host, portStr, isPlayer)
 	if err != nil {
 		return err
 	}
@@ -51,16 +55,18 @@ func ReadConfig(cm *communicators.CommunicatorManager, filename string) error {
 		return err
 	}
 
-	var config map[string]listenerSetting
+	var config map[string][]listenerSetting
 	if _, err := toml.Decode(string(bytes), &config); err != nil {
 		return err
 	}
 
 	for service, settings := range config {
-		err = HandleService(cm, service, settings)
-		if err != nil {
-			// REVIEW
-			return err
+		for _, setting := range settings {
+			err = HandleService(cm, service, setting)
+			if err != nil {
+				// REVIEW
+				return err
+			}
 		}
 	}
 
