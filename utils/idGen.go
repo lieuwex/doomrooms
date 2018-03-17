@@ -5,8 +5,8 @@ import (
 	"strconv"
 )
 
-// formatID converts an uint64 into a string representation.
-func formatID(id uint64) string {
+// FormatID converts an uint64 into a string representation.
+func FormatID(id uint64) string {
 	return fmt.Sprintf("%03s", strconv.FormatUint(id*46649%6125, 36))
 }
 
@@ -32,7 +32,7 @@ func (g *IDGenerator) UniqID() uint64 {
 
 // UniqIDf returns a new 'random' string id and increaes the index
 func (g *IDGenerator) UniqIDf() string {
-	return formatID(g.UniqID())
+	return FormatID(g.UniqID())
 }
 
 var gen = MakeIDGenerator()

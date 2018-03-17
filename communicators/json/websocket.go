@@ -63,6 +63,7 @@ func (comm *WebsocketJSONCommunicator) Stop() error {
 type WebsocketConnection struct {
 	socket *websocket.Conn
 	ch     chan types.Thing
+	rawCh  chan []byte
 	closed bool
 }
 
@@ -70,6 +71,7 @@ func makeWsConnection(ws *websocket.Conn) types.NetConnection {
 	netConn := &WebsocketConnection{
 		socket: ws,
 		ch:     make(chan types.Thing),
+		rawCh:  make(chan []byte),
 		closed: false,
 	}
 
@@ -103,6 +105,16 @@ func (conn *WebsocketConnection) Write(msg types.Message) error {
 func (conn *WebsocketConnection) WriteRes(res types.Result) error {
 	return websocket.JSON.Send(conn.socket, res)
 }
+func (conn *WebsocketConnection) WriteRaw(bytes []byte) error {
+	n, err := conn.socket.Write(bytes)
+	if err != nil {
+		return err
+	} else if n != len(bytes) {
+		return fmt.Errorf("only sent %d bytes out of %d", n, len(bytes))
+	}
+
+	return nil
+}
 
 func (conn *WebsocketConnection) Close() error {
 	return conn.socket.Close()
@@ -114,4 +126,8 @@ func (conn *WebsocketConnection) Closed() bool {
 
 func (conn *WebsocketConnection) Channel() <-chan types.Thing {
 	return conn.ch
+}
+
+func (conn *WebsocketConnection) RawChannel() <-chan []byte {
+	return conn.rawCh
 }

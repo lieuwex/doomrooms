@@ -81,6 +81,7 @@ func (comm *TCPJSONCommunicator) Stop() error {
 type TCPConnection struct {
 	socket net.Conn
 	ch     chan types.Thing
+	rawCh  chan []byte
 	closed bool
 }
 
@@ -88,6 +89,7 @@ func makeTCPConnection(socket *net.TCPConn) types.NetConnection {
 	netConn := &TCPConnection{
 		socket: socket,
 		ch:     make(chan types.Thing),
+		rawCh:  make(chan []byte),
 		closed: false,
 	}
 	reader := bufio.NewReader(socket)
@@ -104,6 +106,11 @@ func makeTCPConnection(socket *net.TCPConn) types.NetConnection {
 				netConn.closed = true
 				close(netConn.ch)
 				return
+			}
+
+			select {
+			case netConn.rawCh <- raw:
+			default:
 			}
 
 			msg := parseBytes(raw)
@@ -124,7 +131,7 @@ func (conn *TCPConnection) Write(msg types.Message) error {
 		return err
 	}
 
-	return conn.write(bytes)
+	return conn.WriteRaw(bytes)
 }
 func (conn *TCPConnection) WriteRes(res types.Result) error {
 	bytes, err := json.Marshal(res)
@@ -132,10 +139,10 @@ func (conn *TCPConnection) WriteRes(res types.Result) error {
 		return err
 	}
 
-	return conn.write(bytes)
+	return conn.WriteRaw(bytes)
 }
 
-func (conn *TCPConnection) write(bytes []byte) error {
+func (conn *TCPConnection) WriteRaw(bytes []byte) error {
 	bytes = append(bytes, delim)
 
 	n, err := conn.socket.Write(bytes)
@@ -163,4 +170,8 @@ func (conn *TCPConnection) Closed() bool {
 
 func (conn *TCPConnection) Channel() <-chan types.Thing {
 	return conn.ch
+}
+
+func (conn *TCPConnection) RawChannel() <-chan []byte {
+	return conn.rawCh
 }

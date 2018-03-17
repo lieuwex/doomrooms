@@ -7,8 +7,10 @@ import (
 	"doomrooms/utils"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -32,6 +34,8 @@ func parseFlags() {
 }
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	utils.SetLogrusFormatter()
 	parseFlags()
 

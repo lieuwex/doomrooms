@@ -85,6 +85,13 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		reply("", nil)
 	})
 
+	handleGameCommand("open-pipe", 0, func() {
+		gs := player.Game().GameServer()
+		ps := MakePipeSession()
+		gs.Emit("pipe-opened", ps.PrivateID)
+		reply("", ps.PrivateID)
+	})
+
 	handleGameCommand("make-room", 3, func() {
 		name := msg.Args[0].(string)
 		hidden := msg.Args[1].(bool)

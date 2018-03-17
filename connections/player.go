@@ -47,6 +47,7 @@ func HandlePlayerConnection(conn *Connection) {
 		if p == nil {
 			err = fmt.Errorf("User not found")
 		} else if p.password != password {
+			p = nil
 			err = fmt.Errorf("Invalid password")
 		}
 	case "make-player":
@@ -59,11 +60,30 @@ func HandlePlayerConnection(conn *Connection) {
 
 		p, err = MakePlayer(username, password)
 	case "pipe-session":
-		if !expectArgs(2) {
+		if !expectArgs(1) {
 			return
 		}
 
-		err = fmt.Errorf("TODO")
+		privateID := msg.Args[0].(string)
+
+		var ps *PipeSession
+		for _, x := range PipeSessions {
+			if x.PrivateID == privateID {
+				ps = x
+			}
+		}
+		if ps == nil {
+			conn.Reply(msg.ID, "no pipe session with given ID found", nil)
+			return
+		}
+
+		err = ps.AddConnection(conn)
+		if err != nil {
+			// TODO
+			fmt.Printf("PIPE ERROR: %#v\n", err)
+			conn.Reply(msg.ID, "err", nil)
+		}
+		return
 
 	default:
 		conn.Reply(msg.ID, "expected greeting message", nil)
@@ -102,10 +122,11 @@ type Player struct {
 	Tags          map[string]interface{} `json:"tags"`
 	CurrentGameID string                 `json:"currentGameId"`
 
-	currentRoom *Room
-	password    string
-	connections []*Connection
-	privateTags map[string]map[string]interface{}
+	currentRoom  *Room
+	password     string
+	connections  []*Connection
+	pipeSessions []*PipeSession
+	privateTags  map[string]map[string]interface{}
 }
 
 func checkNickname(nick string) bool {
