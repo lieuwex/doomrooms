@@ -99,6 +99,10 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		reply("", ps.PrivateID)
 	})
 
+	handleGameCommand("get-current-room", 0, func() {
+		reply("", player.CurrentRoom())
+	})
+
 	handleGameCommand("make-room", 3, func() {
 		name := msg.Args[0].(string)
 		hidden := msg.Args[1].(bool)
@@ -154,6 +158,12 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		reply("", room)
 
 		player.CurrentRoomID = room.ID
+	})
+
+	handleGameCommand("get-room", 1, func() {
+		id := msg.Args[0].(string)
+		room := player.Game().GetRoom(id)
+		reply("", room)
 	})
 
 	handleGameCommand("search-rooms", 1, func() {
