@@ -38,11 +38,6 @@ func HandleService(cm *communicators.CommunicatorManager, service string, settin
 		return err
 	}
 
-	cm.Log.WithFields(log.Fields{
-		"service": service,
-		"port":    settings.Port,
-	}).Info("started service")
-
 	return nil
 }
 
