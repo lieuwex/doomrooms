@@ -190,7 +190,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return
 		}
 
-		player.CurrentRoom().InvitePlayer(p)
+		player.CurrentRoom().InvitePlayer(player, p)
 		reply("", nil)
 	})
 

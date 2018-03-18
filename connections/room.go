@@ -58,15 +58,14 @@ func (r *Room) PlayerInvited(player *Player) bool {
 	return playerIndex(r.invited, player) > -1
 }
 
-func (r *Room) InvitePlayer(player *Player) error {
+func (r *Room) InvitePlayer(inviter, player *Player) error {
 	if r.PlayerInvited(player) {
 		return fmt.Errorf("player already invited")
 	}
 
 	r.invited = append(r.invited, player) // REVIEW: safe?
 
-	_, err := player.Send("emit", "room-invite", r.ID)
-	return err
+	return player.Emit("room-invite", inviter.Nickname, r.ID)
 }
 
 func (r *Room) Broadcast(event string, args ...interface{}) error {
