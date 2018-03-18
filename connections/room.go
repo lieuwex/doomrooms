@@ -69,9 +69,9 @@ func (r *Room) InvitePlayer(player *Player) error {
 	return err
 }
 
-func (r *Room) Broadcast(method string, args ...interface{}) error {
+func (r *Room) Broadcast(event string, args ...interface{}) error {
 	for _, player := range r.Players {
-		_, err := player.Send(method, args...)
+		err := player.Emit(event, args...)
 		if err != nil {
 			return err
 		}
