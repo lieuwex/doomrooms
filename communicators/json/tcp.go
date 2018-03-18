@@ -105,6 +105,7 @@ func makeTCPConnection(socket *net.TCPConn) types.NetConnection {
 				}
 				netConn.closed = true
 				close(netConn.ch)
+				close(netConn.rawCh)
 				return
 			}
 

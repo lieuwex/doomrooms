@@ -84,6 +84,7 @@ func makeWsConnection(ws *websocket.Conn) types.NetConnection {
 
 				netConn.closed = true
 				close(netConn.ch)
+				close(netConn.rawCh)
 				return
 			}
 
