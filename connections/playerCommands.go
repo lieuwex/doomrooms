@@ -46,7 +46,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 	handleRoomCommand := func(method string, argCount int, fn func()) {
 		handleGameCommand(method, argCount, func() {
-			if player.currentRoom == nil {
+			if player.CurrentRoom() == nil {
 				reply("not in a room", nil)
 				return
 			}
@@ -112,7 +112,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		game.gameServer.Emit("room-creation", room)
 		reply("", room)
 
-		player.currentRoom = room
+		player.CurrentRoomID = room.ID
 	})
 
 	handleGameCommand("join-room", -1, func() {
@@ -153,7 +153,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		player.Game().gameServer.Emit("room-join", room, player)
 		reply("", room)
 
-		player.currentRoom = room
+		player.CurrentRoomID = room.ID
 	})
 
 	handleGameCommand("search-rooms", 1, func() {

@@ -96,8 +96,8 @@ type Player struct {
 	Nickname      string                 `json:"nick"`
 	Tags          map[string]interface{} `json:"tags"`
 	CurrentGameID string                 `json:"currentGameId"`
+	CurrentRoomID string                 `json:"currentRoomID"`
 
-	currentRoom  *Room
 	password     string
 	connections  []*Connection
 	pipeSessions []*PipeSession
@@ -137,7 +137,10 @@ func (p *Player) Game() *Game {
 }
 
 func (p *Player) CurrentRoom() *Room {
-	return p.currentRoom
+	if p.CurrentRoomID == "" {
+		return nil
+	}
+	return p.Game().GetRoom(p.CurrentRoomID)
 }
 
 func (p *Player) Send(method string, args ...interface{}) (interface{}, error) {
