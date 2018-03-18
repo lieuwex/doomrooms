@@ -81,6 +81,17 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		reply("", nil)
 	})
 
+	handleCommand("get-tags", 0, func() { // REVIEW
+		reply("", player.Tags)
+	})
+
+	handleCommand("set-tags", 1, func() {
+		tags := msg.Args[0].(map[string]interface{})
+
+		player.Tags = tags
+		reply("", tags)
+	})
+
 	handleGameCommand("open-pipe", 0, func() {
 		gs := player.Game().GameServer()
 		ps := MakePipeSession()
