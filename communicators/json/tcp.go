@@ -131,7 +131,7 @@ func (conn *TCPConnection) Write(msg types.Message) error {
 		return err
 	}
 
-	return conn.WriteRaw(bytes)
+	return conn.write(bytes)
 }
 func (conn *TCPConnection) WriteRes(res types.Result) error {
 	bytes, err := json.Marshal(res)
@@ -139,12 +139,15 @@ func (conn *TCPConnection) WriteRes(res types.Result) error {
 		return err
 	}
 
+	return conn.write(bytes)
+}
+
+func (conn *TCPConnection) write(bytes []byte) error {
+	bytes = append(bytes, delim)
 	return conn.WriteRaw(bytes)
 }
 
 func (conn *TCPConnection) WriteRaw(bytes []byte) error {
-	bytes = append(bytes, delim)
-
 	n, err := conn.socket.Write(bytes)
 	if err != nil {
 		return err
