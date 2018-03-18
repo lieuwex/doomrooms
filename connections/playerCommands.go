@@ -164,14 +164,23 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 	handleRoomCommand("send-room-chat", 1, func() {
 		line := msg.Args[0].(string)
-		players := roomOthers()
 
-		for _, p := range players {
+		for _, p := range roomOthers() {
 			p.Send("emit", "room-chat", player.Nickname, line)
 		}
 	})
+	handleRoomCommand("send-filtered-room-chat", 2, func() {
+		line := msg.Args[0].(string)
+		filter := msg.Args[1].(map[string]interface{})
 
-	// REVIEW: Team chat?
+		for _, p := range roomOthers() {
+			if !p.TagsMatch(filter) {
+				continue
+			}
+
+			p.Send("emit", "filtered-room-chat", player.Nickname, line, filter)
+		}
+	})
 
 	handleRoomCommand("invite-player", 1, func() {
 		nick := msg.Args[0].(string)

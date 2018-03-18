@@ -204,3 +204,12 @@ func (p *Player) removeConnection(conn *Connection) error {
 
 	return nil
 }
+
+func (p *Player) TagsMatch(tags map[string]interface{}) bool {
+	for key, val := range tags {
+		if p.Tags[key] != val {
+			return false
+		}
+	}
+	return true
+}
