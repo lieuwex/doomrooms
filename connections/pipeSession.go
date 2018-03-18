@@ -4,6 +4,9 @@ import (
 	"doomrooms/utils"
 	"fmt"
 	"math/rand"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const bufferSize = 100
@@ -112,4 +115,34 @@ func (ps *PipeSession) removeConnection(conn *Connection) error {
 	}
 
 	return nil
+}
+
+func HandlePipeSesionConnection(conn *Connection) {
+	defer conn.Close()
+
+	bytes := <-conn.netConn.RawChannel()
+	if conn.closed {
+		log.Info("connection closed")
+		return
+	}
+
+	privateID := strings.TrimSpace(string(bytes))
+
+	var ps *PipeSession
+	for _, x := range PipeSessions {
+		if x.PrivateID == privateID {
+			ps = x
+		}
+	}
+	if ps == nil {
+		return
+	}
+
+	err := ps.BindConnection(conn)
+	if err != nil {
+		// TODO
+		fmt.Printf("PIPE ERROR: %#v\n", err)
+		return
+	}
+	return
 }

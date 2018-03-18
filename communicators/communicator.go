@@ -13,23 +13,25 @@ import (
 type CommunicatorManager struct {
 	Communicators []types.Communicator
 
-	playerConnCh     chan *connections.Connection
-	gameServerConnCh chan *connections.Connection
+	playerConnCh      chan *connections.Connection
+	gameServerConnCh  chan *connections.Connection
+	pipeSessionConnCh chan *connections.Connection
 
 	log *log.Logger
 }
 
 func MakeCommunicatorManager() *CommunicatorManager {
 	cm := &CommunicatorManager{
-		playerConnCh:     make(chan *connections.Connection),
-		gameServerConnCh: make(chan *connections.Connection),
-		log:              log.New(),
+		playerConnCh:      make(chan *connections.Connection),
+		gameServerConnCh:  make(chan *connections.Connection),
+		pipeSessionConnCh: make(chan *connections.Connection),
+		log:               log.New(),
 	}
 	cm.log.Formatter = utils.Formatter
 	return cm
 }
 
-func (cm *CommunicatorManager) StartService(service string, host string, port string, isPlayer bool) error {
+func (cm *CommunicatorManager) StartService(service string, host string, port string, typ string) error {
 	var comm types.Communicator
 	switch service {
 	case "tcp-json":
@@ -47,9 +49,17 @@ func (cm *CommunicatorManager) StartService(service string, host string, port st
 		return err
 	}
 
-	connCh := cm.gameServerConnCh
-	if isPlayer {
+	var connCh chan *connections.Connection
+	switch typ {
+	case "player":
 		connCh = cm.playerConnCh
+	case "gameserver":
+		connCh = cm.gameServerConnCh
+	case "pipesession":
+		connCh = cm.pipeSessionConnCh
+
+	default:
+		return fmt.Errorf("unknown type '%s'", typ)
 	}
 
 	go func() {
@@ -84,4 +94,7 @@ func (cm *CommunicatorManager) PlayerConnectionCh() <-chan *connections.Connecti
 }
 func (cm *CommunicatorManager) GameServerConnectionCh() <-chan *connections.Connection {
 	return cm.gameServerConnCh
+}
+func (cm *CommunicatorManager) PipeSessionConnectionCh() <-chan *connections.Connection {
+	return cm.pipeSessionConnCh
 }

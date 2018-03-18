@@ -23,17 +23,7 @@ func HandleService(cm *communicators.CommunicatorManager, service string, settin
 	}
 	portStr := strconv.FormatUint(settings.Port, 10)
 
-	var isPlayer bool
-	switch settings.Type {
-	case "player":
-		isPlayer = true
-	case "gameserver":
-		isPlayer = false
-	default:
-		return fmt.Errorf("unknown type '%s'", settings.Type)
-	}
-
-	err := cm.StartService(service, settings.Host, portStr, isPlayer)
+	err := cm.StartService(service, settings.Host, portStr, settings.Type)
 	if err != nil {
 		return err
 	}

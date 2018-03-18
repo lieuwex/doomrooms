@@ -82,5 +82,15 @@ func main() {
 		}
 	}()
 
+	go func() {
+		for {
+			connection := <-cm.PipeSessionConnectionCh()
+			log.WithFields(log.Fields{
+				"conn": connection,
+			}).Info("got new pipe session connection in main.go")
+			go connections.HandlePipeSesionConnection(connection) // REVIEW
+		}
+	}()
+
 	select {}
 }

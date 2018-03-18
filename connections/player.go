@@ -59,31 +59,6 @@ func HandlePlayerConnection(conn *Connection) {
 		password := msg.Args[1].(string)
 
 		p, err = MakePlayer(username, password)
-	case "pipe-session":
-		if !expectArgs(1) {
-			return
-		}
-
-		privateID := msg.Args[0].(string)
-
-		var ps *PipeSession
-		for _, x := range PipeSessions {
-			if x.PrivateID == privateID {
-				ps = x
-			}
-		}
-		if ps == nil {
-			conn.Reply(msg.ID, "no pipe session with given ID found", nil)
-			return
-		}
-
-		err = ps.BindConnection(conn)
-		if err != nil {
-			// TODO
-			fmt.Printf("PIPE ERROR: %#v\n", err)
-			conn.Reply(msg.ID, "err", nil)
-		}
-		return
 
 	default:
 		conn.Reply(msg.ID, "expected greeting message", nil)
