@@ -187,12 +187,26 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 	handleRoomCommand("invite-player", 1, func() (interface{}, string) {
 		nick := msg.Args[0].(string)
+
 		p := GetPlayer(nick)
 		if p == nil {
 			return nil, "player-not-found"
 		}
 
 		player.CurrentRoom().InvitePlayer(player, p)
+
+		return nil, ""
+	})
+	handleRoomCommand("uninvite-player", 1, func() (interface{}, string) {
+		nick := msg.Args[0].(string)
+
+		p := GetPlayer(nick)
+		if p == nil {
+			return nil, "player-not-found"
+		}
+
+		player.CurrentRoom().UninvitePlayer(p)
+
 		return nil, ""
 	})
 
@@ -217,11 +231,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleRoomCommand("leave-room", 0, func() (interface{}, string) {
-		err := player.CurrentRoom().RemovePlayer(player)
-		if err != nil {
-			return nil, err.Error()
-		}
-
+		player.CurrentRoom().RemovePlayer(player)
 		return nil, ""
 	})
 
@@ -240,6 +250,8 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return room, ""
 	})
 
+	// left for basic communication, use PipeSessions for bigger amounts of
+	// communcation instead.
 	handleRoomCommand("message-game-server", -1, func() (interface{}, string) {
 		gs := player.Game().gameServer
 		res, err := gs.Send("player-message", msg.Args...)

@@ -85,7 +85,9 @@ func HandleGameServerConnection(conn *Connection) {
 			"room-join":     "off",
 			"room-leave":    "off",
 
-			"game-start": "on", // why would anyone want to set this to "off"?
+			// why would anyone want to set these to "off"?
+			"game-start":  "on",
+			"pipe-opened": "on",
 		},
 	}
 
@@ -182,6 +184,8 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 		return rooms, ""
 	})
 
+	// left for basic communication, use PipeSessions for bigger amounts of
+	// communcation instead.
 	handleCommand("message-player", -1, func() (interface{}, string) {
 		nick := msg.Args[0].(string)
 		args := msg.Args[1:]

@@ -25,33 +25,34 @@ func playerIndex(players []*Player, p *Player) int {
 }
 
 func (r *Room) AddPlayer(player *Player) error {
-	r.Broadcast("emit", "player-join", player.Nickname) // REVIEW
-
-	if i := playerIndex(r.invited, player); i > -1 {
-		// remove player from invited
-		r.invited = append(r.invited[:i], r.invited[i+1:]...)
+	if r.PlayerInRoom(player) {
+		return fmt.Errorf("player already in room")
 	}
 
+	r.UninvitePlayer(player)
+
 	r.Players = append(r.Players, player)
+	r.Broadcast("player-join", player.Nickname)
 	return nil
 }
 
-func (r *Room) RemovePlayer(player *Player) error {
-	i := playerIndex(r.invited, player)
+func (r *Room) RemovePlayer(player *Player) {
+	i := playerIndex(r.Players, player)
 	if i == -1 {
-		return fmt.Errorf("player not found")
+		return
 	}
 
 	r.Players = append(r.Players[:i], r.Players[i+1:]...)
-
-	r.Broadcast("emit", "player-leave", player.Nickname)
-
 	if r.Admin == player {
 		r.Admin = r.Players[0]
-		r.Broadcast("emit", "admin-change", r.Admin.Nickname)
+		r.Broadcast("admin-change", r.Admin.Nickname)
 	}
 
-	return nil
+	r.Broadcast("player-leave", player.Nickname)
+}
+
+func (r *Room) PlayerInRoom(player *Player) bool {
+	return playerIndex(r.Players, player) > -1
 }
 
 func (r *Room) PlayerInvited(player *Player) bool {
@@ -61,20 +62,36 @@ func (r *Room) PlayerInvited(player *Player) bool {
 func (r *Room) InvitePlayer(inviter, player *Player) error {
 	if r.PlayerInvited(player) {
 		return fmt.Errorf("player already invited")
+	} else if r.PlayerInRoom(player) {
+		return fmt.Errorf("player already in room")
 	}
 
 	r.invited = append(r.invited, player) // REVIEW: safe?
 
-	return player.Emit("room-invite", inviter.Nickname, r.ID)
+	err := player.Emit("room-invite", inviter, r)
+	if err != nil {
+		return err
+	}
+
+	return r.Broadcast("player-invited", inviter.Nickname, player)
+}
+
+func (r *Room) UninvitePlayer(player *Player) {
+	if i := playerIndex(r.invited, player); i > -1 {
+		r.invited = append(r.invited[:i], r.invited[i+1:]...)
+	}
 }
 
 func (r *Room) Broadcast(event string, args ...interface{}) error {
+	args = append([]interface{}{r.ID}, args...)
+
 	for _, player := range r.Players {
 		err := player.Emit(event, args...)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
