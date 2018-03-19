@@ -56,10 +56,9 @@ func (g *Game) MakeRoom(creator *Player, name string, hidden bool, options map[s
 		Hidden:  hidden,
 		Options: options,
 		Started: false,
+		GameID:  g.ID,
 
 		Admin: creator,
-
-		game: g, // REVIEW
 	}
 	g.rooms[id] = room
 	return room

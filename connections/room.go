@@ -8,12 +8,12 @@ type Room struct {
 	Hidden  bool                   `json:"hidden"`
 	Options map[string]interface{} `json:"options"`
 	Started bool                   `json:"started"`
+	GameID  string                 `json:"gameID"`
 
 	Players []*Player `json:"players"`
 	Admin   *Player   `json:"admin"`
 
 	invited []*Player // REVIEW: hidden?
-	game    *Game
 }
 
 func playerIndex(players []*Player, p *Player) int {
@@ -99,7 +99,7 @@ func (r *Room) Broadcast(event string, args ...interface{}) error {
 }
 
 func (r *Room) Game() *Game {
-	return r.game
+	return GetGame(r.GameID)
 }
 
 func (r *Room) Start() error {
