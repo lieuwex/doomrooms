@@ -98,10 +98,9 @@ type Player struct {
 	CurrentGameID string                 `json:"currentGameId"`
 	CurrentRoomID string                 `json:"currentRoomID"`
 
-	password     string
-	connections  []*Connection
-	pipeSessions []*PipeSession
-	privateTags  map[string]map[string]interface{}
+	password    string
+	connections []*Connection
+	privateTags map[string]map[string]interface{}
 }
 
 func checkNickname(nick string) bool {
