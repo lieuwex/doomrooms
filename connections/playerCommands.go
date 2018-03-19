@@ -108,7 +108,6 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		room.AddPlayer(player)
 
 		game.gameServer.Emit("room-creation", room)
-		player.CurrentRoomID = room.ID
 
 		return room, ""
 	})
@@ -144,7 +143,6 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		}
 
 		player.Game().gameServer.Emit("room-join", room, player)
-		player.CurrentRoomID = room.ID
 
 		return room, ""
 	})
