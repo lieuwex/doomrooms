@@ -145,7 +145,7 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 				return
 			}
 
-			g.gameServer.Connection.Send("emit", "conn-overrule")
+			g.gameServer.Emit("conn-overrule")
 		}
 
 		g.gameServer = gs

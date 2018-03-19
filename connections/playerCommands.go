@@ -77,7 +77,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return
 		}
 
-		target.Send("emit", "private-chat", player.Nickname, line)
+		target.Emit("private-chat", player.Nickname, line)
 		reply("", nil)
 	})
 
@@ -176,7 +176,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		line := msg.Args[0].(string)
 
 		for _, p := range roomOthers() {
-			p.Send("emit", "room-chat", player.Nickname, line)
+			p.Emit("room-chat", player.Nickname, line)
 		}
 	})
 	handleRoomCommand("send-filtered-room-chat", 2, func() {
@@ -188,7 +188,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 				continue
 			}
 
-			p.Send("emit", "filtered-room-chat", player.Nickname, line, filter)
+			p.Emit("filtered-room-chat", player.Nickname, line, filter)
 		}
 	})
 
@@ -220,7 +220,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return
 		}
 
-		p.Send("emit", "kick", reason)
+		p.Emit("kick", reason)
 		room.RemovePlayer(p)
 
 		reply("", nil)
