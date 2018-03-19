@@ -107,25 +107,22 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	handled := false
 	conn := gs.Connection
 
-	reply := func(err string, res interface{}) {
-		conn.Reply(msg.ID, err, res)
-	}
-
-	handleCommand := func(method string, argCount int, fn func()) {
+	handleCommand := func(method string, argCount int, fn func() (interface{}, string)) {
 		if msg.Method != method {
 			return
 		}
 		handled = true
 
 		if len(msg.Args) != argCount && argCount != -1 {
-			reply("not enough arguments", nil)
+			conn.Reply(msg.ID, "not enough arguments", nil)
 			return
 		}
 
-		fn()
+		res, err := fn()
+		conn.Reply(msg.ID, err, res)
 	}
 
-	handleCommand("attach-game", 2, func() {
+	handleCommand("attach-game", 2, func() (interface{}, string) {
 		gameID := msg.Args[0].(string)
 		force := msg.Args[1].(bool)
 
@@ -135,24 +132,22 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 
 		g := GetGame(gameID)
 		if g == nil {
-			reply("game not found", nil)
-			return
+			return nil, "game not found"
 		}
 
 		if g.gameServer != nil {
 			if !force {
-				reply("a gameserver has already been attached and force arg is false", nil)
-				return
+				return nil, "a gameserver has already been attached and force arg is false"
 			}
 
 			g.gameServer.Emit("conn-overrule")
 		}
 
 		g.gameServer = gs
-		reply("", g)
+		return g, ""
 	})
 
-	handleCommand("make-game", 2, func() {
+	handleCommand("make-game", 2, func() (interface{}, string) {
 		gameID := msg.Args[0].(string)
 		gameName := msg.Args[1].(string)
 
@@ -162,93 +157,90 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 
 		g, err := MakeGame(gameID, gameName)
 		if err != nil {
-			reply(err.Error(), nil)
-			return
+			return nil, err.Error()
 		}
 
 		g.gameServer = gs
-		reply("", g)
+		return g, ""
 	})
 
-	handleCommand("set-notif-option", 2, func() {
+	handleCommand("set-notif-option", 2, func() (interface{}, string) {
 		key := msg.Args[0].(string)
 		val := msg.Args[1].(string)
 
 		gs.NotifyOptions[key] = val
-		reply("", gs.NotifyOptions)
+		return gs.NotifyOptions, ""
 	})
 
-	handleCommand("list-rooms", 0, func() {
-		reply("", gs.Game().rooms)
+	handleCommand("list-rooms", 0, func() (interface{}, string) {
+		return gs.Game().rooms, ""
 	})
 
-	handleCommand("search-rooms", 1, func() {
+	handleCommand("search-rooms", 1, func() (interface{}, string) {
 		query := msg.Args[0].(string)
 		rooms := gs.Game().SearchRooms(query, true)
-		reply("", rooms)
+		return rooms, ""
 	})
 
-	handleCommand("message-player", -1, func() {
+	handleCommand("message-player", -1, func() (interface{}, string) {
 		nick := msg.Args[0].(string)
 		args := msg.Args[1:]
 
 		p := GetPlayer(nick)
 		if p == nil {
-			reply("player-not-found", nil)
+			return nil, "player-not-found"
 		}
 
 		res, err := p.Send("game-server-message", args...)
 		if err != nil {
-			reply(err.Error(), nil)
-			return
+			return nil, err.Error()
 		}
 
-		reply("", res)
+		return res, ""
 	})
 
-	handleCommand("get-private-player-tags", 1, func() {
+	handleCommand("get-private-player-tags", 1, func() (interface{}, string) {
 		nick := msg.Args[0].(string)
 
 		p := GetPlayer(nick)
 		if p == nil {
-			reply("player-not-found", nil)
+			return nil, "player-not-found"
 		}
 
 		tags := p.privateTags[gs.Game().ID]
-		reply("", tags)
+		return tags, ""
 	})
 
-	handleCommand("set-private-player-tags", 2, func() {
+	handleCommand("set-private-player-tags", 2, func() (interface{}, string) {
 		nick := msg.Args[0].(string)
 		tags := msg.Args[1].(map[string]interface{})
 
 		p := GetPlayer(nick)
 		if p == nil {
-			reply("player-not-found", nil)
+			return nil, "player-not-found"
 		}
 
 		p.privateTags[gs.Game().ID] = tags
-		reply("", tags)
+		return tags, ""
 	})
 
-	handleCommand("start-game", 1, func() {
+	handleCommand("start-game", 1, func() (interface{}, string) {
 		roomID := msg.Args[0].(string)
 
 		room := gs.Game().GetRoom(roomID)
 		if room == nil {
-			reply("room-not-found", nil)
+			return nil, "room-not-found"
 		}
 
 		err := room.Start()
 		if err != nil {
-			reply(err.Error(), nil)
-			return
+			return nil, err.Error()
 		}
 
-		reply("", room)
+		return room, ""
 	})
 
 	if !handled {
-		reply("unknown command", nil)
+		conn.Reply(msg.ID, "unknown command", nil)
 	}
 }
