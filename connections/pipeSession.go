@@ -36,6 +36,15 @@ func MakePipeSession() *PipeSession {
 	return session
 }
 
+func removePipeSession(ps *PipeSession) {
+	for i, x := range PipeSessions {
+		if x == ps {
+			PipeSessions = append(PipeSessions[:i], PipeSessions[i+1:]...)
+			return
+		}
+	}
+}
+
 func (ps *PipeSession) BindConnection(conn *Connection) error {
 	isA, sendCh, recvCh, err := ps.addConnection(conn)
 	if err != nil {
@@ -112,6 +121,10 @@ func (ps *PipeSession) removeConnection(conn *Connection) error {
 		ps.B = nil
 	} else {
 		return fmt.Errorf("Connection not bound to PipeSession")
+	}
+
+	if ps.A == nil && ps.B == nil {
+		removePipeSession(ps)
 	}
 
 	return nil
