@@ -21,6 +21,8 @@ type PipeSession struct {
 
 	AToB chan []byte
 	BToA chan []byte
+
+	waitch chan bool
 }
 
 func MakePipeSession() *PipeSession {
@@ -30,6 +32,8 @@ func MakePipeSession() *PipeSession {
 
 		AToB: make(chan []byte, bufferSize),
 		BToA: make(chan []byte, bufferSize),
+
+		waitch: make(chan bool),
 	}
 
 	PipeSessions = append(PipeSessions, session)
@@ -46,25 +50,23 @@ func removePipeSession(ps *PipeSession) {
 }
 
 func (ps *PipeSession) BindConnection(conn *Connection) error {
-	isA, sendCh, recvCh, err := ps.addConnection(conn)
+	sendCh, recvCh, err := ps.addConnection(conn)
 	if err != nil {
 		return err
 	}
 	defer ps.removeConnection(conn)
 
-	waitch := make(chan bool)
-
 	go func() {
 		for {
 			select {
-			case <-waitch:
+			case <-ps.waitch:
 				return
 
 			case bytes := <-recvCh:
 				err := conn.netConn.WriteRaw(bytes)
 				if err != nil {
 					fmt.Printf("ps err %#v\n", err)
-					close(waitch)
+					close(ps.waitch)
 					return
 				}
 			}
@@ -74,12 +76,12 @@ func (ps *PipeSession) BindConnection(conn *Connection) error {
 	go func() {
 		for {
 			select {
-			case <-waitch:
+			case <-ps.waitch:
 				return
 
 			case bytes := <-conn.netConn.RawChannel():
 				if conn.netConn.Closed() {
-					close(waitch)
+					close(ps.waitch)
 					return
 				}
 				sendCh <- bytes
@@ -87,31 +89,22 @@ func (ps *PipeSession) BindConnection(conn *Connection) error {
 		}
 	}()
 
-	<-waitch
+	<-ps.waitch
 
-	var other *Connection
-	if isA {
-		other = ps.B
-	} else {
-		other = ps.A
-	}
-
-	if other != nil && !other.Closed() {
-		return other.Close()
-	}
+	conn.Close()
 	return nil
 }
 
-func (ps *PipeSession) addConnection(conn *Connection) (isA bool, sendCh chan []byte, recvCh chan []byte, err error) {
+func (ps *PipeSession) addConnection(conn *Connection) (sendCh chan []byte, recvCh chan []byte, err error) {
 	if ps.A == nil {
 		ps.A = conn
-		return true, ps.AToB, ps.BToA, nil
+		return ps.AToB, ps.BToA, nil
 	} else if ps.B == nil {
 		ps.B = conn
-		return false, ps.BToA, ps.AToB, nil
+		return ps.BToA, ps.AToB, nil
 	}
 
-	return false, nil, nil, fmt.Errorf("PipeSession is fully loaded")
+	return nil, nil, fmt.Errorf("PipeSession is fully loaded")
 }
 
 func (ps *PipeSession) removeConnection(conn *Connection) error {
@@ -155,7 +148,5 @@ func HandlePipeSesionConnection(conn *Connection) {
 	if err != nil {
 		// TODO
 		fmt.Printf("PIPE ERROR: %#v\n", err)
-		return
 	}
-	return
 }
