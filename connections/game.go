@@ -22,8 +22,12 @@ type Game struct {
 	// TODO: player connections
 }
 
+func GetGame(id string) *Game {
+	return Games[id]
+}
+
 func MakeGame(id string, name string) (*Game, error) {
-	if Games[id] != nil {
+	if GetGame(id) != nil {
 		return nil, fmt.Errorf("game with ID '%s' already exists", id)
 	}
 
@@ -42,10 +46,6 @@ func MakeGame(id string, name string) (*Game, error) {
 	}).Info("made game")
 
 	return g, nil
-}
-
-func GetGame(id string) *Game {
-	return Games[id]
 }
 
 func (g *Game) MakeRoom(creator *Player, name string, hidden bool, options map[string]interface{}) *Room {
