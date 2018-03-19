@@ -28,35 +28,37 @@ func MakeConnection(netConn types.NetConnection) *Connection {
 
 	go func() {
 		for {
-			msg, ok := <-netConn.Channel()
+			thing, ok := <-netConn.Channel()
 			if !ok {
 				conn.closed = true
 				close(conn.ch)
 				return
 			}
 
-			if id := msg.GetID(); id > conn.currentID {
+			if id := thing.GetID(); id > conn.currentID {
 				conn.currentID = id
 			}
 
-			switch msg.GetType() {
+			switch thing.GetType() {
 			case types.TResult: // REVIEW
-				channels := conn.resultWaiters[msg.GetID()]
+				res := thing.GetResult()
+				channels := conn.resultWaiters[res.ID]
 				if channels != nil && len(channels) > 0 {
 					for _, ch := range channels {
-						ch <- msg.GetResult()
+						ch <- res
 					}
-					conn.resultWaiters[msg.GetID()] = nil
+					conn.resultWaiters[res.ID] = nil
 				}
 
 			case types.TMessage:
-				m := msg.GetMessage()
-				if m.Method == "ping" {
-					conn.Reply(m.ID, "", "pong")
-					continue
-				}
+				msg := thing.GetMessage()
+				switch msg.Method {
+				case "ping":
+					conn.Reply(msg.ID, "", "pong")
 
-				conn.ch <- m.GetMessage()
+				default:
+					conn.ch <- msg
+				}
 
 			default: // REVIEW
 				panic("unknown type")
