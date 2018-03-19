@@ -7,6 +7,7 @@ type Room struct {
 	Name    string                 `json:"name"`
 	Hidden  bool                   `json:"hidden"`
 	Options map[string]interface{} `json:"options"`
+	Started bool                   `json:"started"`
 
 	Players []*Player `json:"players"`
 	Admin   *Player   `json:"admin"`
@@ -102,6 +103,11 @@ func (r *Room) Game() *Game {
 }
 
 func (r *Room) Start() error {
+	if r.Started {
+		return fmt.Errorf("already started")
+	}
+
+	r.Started = true
 	r.Broadcast("game-start", r)
 	r.Game().GameServer().Emit("game-start", r)
 

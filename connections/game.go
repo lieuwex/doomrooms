@@ -55,6 +55,7 @@ func (g *Game) MakeRoom(creator *Player, name string, hidden bool, options map[s
 		Name:    name,
 		Hidden:  hidden,
 		Options: options,
+		Started: false,
 
 		Admin: creator,
 
