@@ -88,7 +88,10 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 	handleGameCommand("open-pipe", 0, func() (interface{}, string) {
 		gs := player.Game().GameServer()
-		ps := MakePipeSession()
+		ps, err := MakePipeSession()
+		if err != nil {
+			return nil, err.Error()
+		}
 		gs.Emit("pipe-opened", player, ps.PrivateID)
 		return ps.PrivateID, ""
 	})

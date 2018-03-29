@@ -3,13 +3,13 @@ package connections
 import (
 	"doomrooms/utils"
 	"fmt"
-	"math/rand"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
 
 const bufferSize = 100
+const IDLength = 25
 
 var PipeSessions = make([]*PipeSession, 0)
 
@@ -25,10 +25,14 @@ type PipeSession struct {
 	waitch chan bool
 }
 
-func MakePipeSession() *PipeSession {
+func MakePipeSession() (*PipeSession, error) {
+	id, err := utils.GenerateUID(25)
+	if err != nil {
+		return nil, err
+	}
+
 	session := &PipeSession{
-		// TODO: make this cryptographically secure
-		PrivateID: utils.FormatID(rand.Uint64()),
+		PrivateID: id,
 
 		AToB: make(chan []byte, bufferSize),
 		BToA: make(chan []byte, bufferSize),
@@ -37,7 +41,7 @@ func MakePipeSession() *PipeSession {
 	}
 
 	PipeSessions = append(PipeSessions, session)
-	return session
+	return session, nil
 }
 
 func removePipeSession(ps *PipeSession) {
