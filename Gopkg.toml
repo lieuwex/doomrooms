@@ -41,3 +41,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/kmanley/golang-tuple"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mitchellh/mapstructure"

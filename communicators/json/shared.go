@@ -4,6 +4,7 @@ import (
 	"doomrooms/types"
 	"encoding/json"
 
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,12 +16,12 @@ func parseBytes(bytes []byte) types.Thing {
 
 	if m["method"] != nil {
 		var msg types.Message
-		if json.Unmarshal(bytes, &msg) == nil {
+		if mapstructure.Decode(m, &msg) == nil {
 			return &msg
 		}
 	} else {
 		var res types.Result
-		if json.Unmarshal(bytes, &res) == nil {
+		if mapstructure.Decode(m, &res) == nil {
 			return &res
 		}
 	}
