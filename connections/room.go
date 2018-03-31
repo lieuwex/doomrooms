@@ -32,9 +32,9 @@ func (r *Room) AddPlayer(player *Player) error {
 
 	r.UninvitePlayer(player)
 
+	r.Broadcast("player-join", player.Nickname)
 	r.Players = append(r.Players, player)
 	player.CurrentRoomID = r.ID
-	r.Broadcast("player-join", player.Nickname)
 	return nil
 }
 

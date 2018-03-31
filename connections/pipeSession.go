@@ -14,13 +14,13 @@ const IDLength = 25
 var PipeSessions = make([]*PipeSession, 0)
 
 type PipeSession struct {
-	A *Connection
-	B *Connection
-
 	PrivateID string
 
-	AToB chan []byte
-	BToA chan []byte
+	a *Connection
+	b *Connection
+
+	aToB chan []byte
+	bToA chan []byte
 
 	waitch chan bool
 }
@@ -34,8 +34,8 @@ func MakePipeSession() (*PipeSession, error) {
 	session := &PipeSession{
 		PrivateID: id,
 
-		AToB: make(chan []byte, bufferSize),
-		BToA: make(chan []byte, bufferSize),
+		aToB: make(chan []byte, bufferSize),
+		bToA: make(chan []byte, bufferSize),
 
 		waitch: make(chan bool),
 	}
@@ -100,27 +100,27 @@ func (ps *PipeSession) BindConnection(conn *Connection) error {
 }
 
 func (ps *PipeSession) addConnection(conn *Connection) (sendCh chan []byte, recvCh chan []byte, err error) {
-	if ps.A == nil {
-		ps.A = conn
-		return ps.AToB, ps.BToA, nil
-	} else if ps.B == nil {
-		ps.B = conn
-		return ps.BToA, ps.AToB, nil
+	if ps.a == nil {
+		ps.a = conn
+		return ps.aToB, ps.bToA, nil
+	} else if ps.b == nil {
+		ps.b = conn
+		return ps.bToA, ps.aToB, nil
 	}
 
 	return nil, nil, fmt.Errorf("PipeSession is fully loaded")
 }
 
 func (ps *PipeSession) removeConnection(conn *Connection) error {
-	if ps.A == conn {
-		ps.A = nil
-	} else if ps.B == conn {
-		ps.B = nil
+	if ps.a == conn {
+		ps.a = nil
+	} else if ps.b == conn {
+		ps.b = nil
 	} else {
 		return fmt.Errorf("Connection not bound to PipeSession")
 	}
 
-	if ps.A == nil && ps.B == nil {
+	if ps.a == nil && ps.b == nil {
 		removePipeSession(ps)
 	}
 
