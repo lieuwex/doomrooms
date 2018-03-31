@@ -27,5 +27,5 @@ func GenerateUID(length int) (string, error) {
 		return "", err
 	}
 
-	return base32.StdEncoding.EncodeToString(bytes), nil
+	return base32.StdEncoding.EncodeToString(bytes)[:length], nil
 }
