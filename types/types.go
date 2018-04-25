@@ -14,13 +14,6 @@ type Thing interface {
 	GetResult() *Result
 }
 
-type Communicator interface {
-	ConnectionCh() <-chan NetConnection
-	Started() bool
-	Start(host string, port string) error
-	Stop() error
-}
-
 type NetConnection interface {
 	Write(msg Message) error
 	WriteRes(res Result) error
