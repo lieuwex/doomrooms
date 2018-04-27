@@ -239,6 +239,19 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return nil, ""
 	})
 
+	handleRoomCommand("remove-room", 0, func() (interface{}, string) {
+		room := player.CurrentRoom()
+
+		if room.Admin != player {
+			return nil, "not-admin"
+		}
+
+		if err := player.Game().RemoveRoom(room.ID); err != nil {
+			return nil, err.Error()
+		}
+		return nil, ""
+	})
+
 	handleRoomCommand("start", 0, func() (interface{}, string) {
 		room := player.CurrentRoom()
 
