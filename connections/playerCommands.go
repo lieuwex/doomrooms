@@ -140,8 +140,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "incorrect-password"
 		}
 
-		err := room.AddPlayer(player)
-		if err != nil {
+		if err := room.AddPlayer(player); err != nil {
 			return nil, err.Error()
 		}
 
@@ -226,13 +225,17 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		}
 
 		p.Emit("kick", reason)
-		room.RemovePlayer(p)
+		if err := room.RemovePlayer(p); err != nil {
+			return nil, err.Error()
+		}
 
 		return nil, ""
 	})
 
 	handleRoomCommand("leave-room", 0, func() (interface{}, string) {
-		player.CurrentRoom().RemovePlayer(player)
+		if err := player.CurrentRoom().RemovePlayer(player); err != nil {
+			return nil, err.Error()
+		}
 		return nil, ""
 	})
 

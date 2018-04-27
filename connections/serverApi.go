@@ -82,6 +82,7 @@ func HandleGameServerConnection(conn *Connection) {
 		Connection: conn,
 		NotifyOptions: map[string]string{
 			"room-creation": "on",
+			"room-remove":   "on",
 			"room-join":     "off",
 			"room-leave":    "off",
 

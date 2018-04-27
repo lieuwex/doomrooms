@@ -1,6 +1,9 @@
 package connections
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Room struct {
 	ID      string                 `json:"id"`
@@ -38,20 +41,26 @@ func (r *Room) AddPlayer(player *Player) error {
 	return nil
 }
 
-func (r *Room) RemovePlayer(player *Player) {
+func (r *Room) RemovePlayer(player *Player) error {
 	i := playerIndex(r.Players, player)
 	if i == -1 {
-		return
+		return errors.New("player not in room")
 	}
 
 	r.Players = append(r.Players[:i], r.Players[i+1:]...)
 	player.CurrentRoomID = ""
+
 	if r.Admin == player {
 		r.Admin = r.Players[0]
 		r.Broadcast("admin-change", r.Admin.Nickname)
 	}
 
 	r.Broadcast("player-leave", player.Nickname)
+
+	if len(r.Players) == 0 {
+		return r.Game().RemoveRoom(r.ID)
+	}
+	return nil
 }
 
 func (r *Room) PlayerInRoom(player *Player) bool {

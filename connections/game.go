@@ -2,6 +2,7 @@ package connections
 
 import (
 	"doomrooms/utils"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -66,6 +67,26 @@ func (g *Game) MakeRoom(creator *Player, name string, hidden bool, options map[s
 
 func (g *Game) GetRoom(id string) *Room {
 	return g.rooms[id]
+}
+
+func (g *Game) RemoveRoom(id string) error {
+	room := g.GetRoom(id)
+	if room == nil {
+		return errors.New("room not found")
+	}
+
+	// REVIEW
+	for _, p := range room.Players {
+		if err := room.RemovePlayer(p); err != nil {
+			return err
+		}
+	}
+
+	room.Broadcast("room-remove")
+	g.rooms[id] = nil
+	g.GameServer().Emit("room-remove", room)
+
+	return nil
 }
 
 // TODO: also support some shit like r.Options
