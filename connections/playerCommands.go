@@ -58,7 +58,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "game not found"
 		}
 
-		player.CurrentGameID = gameID
+		player.SetGame(g)
 		return g, ""
 	})
 
@@ -108,7 +108,9 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		game := player.Game()
 
 		room := game.MakeRoom(player, name, hidden, options)
-		room.AddPlayer(player)
+		if err := player.JoinRoom(room); err != nil {
+			return nil, err.Error()
+		}
 
 		game.gameServer.Emit("room-creation", room)
 
@@ -140,7 +142,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "incorrect-password"
 		}
 
-		if err := room.AddPlayer(player); err != nil {
+		if err := player.JoinRoom(room); err != nil {
 			return nil, err.Error()
 		}
 

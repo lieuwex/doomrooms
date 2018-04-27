@@ -37,7 +37,7 @@ func (r *Room) AddPlayer(player *Player) error {
 
 	r.Broadcast("player-join", player.Nickname)
 	r.Players = append(r.Players, player)
-	player.CurrentRoomID = r.ID
+	player.currentRoomID = r.ID
 	return nil
 }
 
@@ -48,7 +48,7 @@ func (r *Room) RemovePlayer(player *Player) error {
 	}
 
 	r.Players = append(r.Players[:i], r.Players[i+1:]...)
-	player.CurrentRoomID = ""
+	player.currentRoomID = ""
 
 	if r.Admin == player {
 		r.Admin = r.Players[0]

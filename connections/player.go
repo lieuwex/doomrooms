@@ -93,14 +93,15 @@ func HandlePlayerConnection(conn *Connection) {
 }
 
 type Player struct {
-	Nickname      string                 `json:"nick"`
-	Tags          map[string]interface{} `json:"tags"`
-	CurrentGameID string                 `json:"currentGameId"`
-	CurrentRoomID string                 `json:"currentRoomID"`
+	Nickname string                 `json:"nick"`
+	Tags     map[string]interface{} `json:"tags"`
 
 	password    string
 	connections []*Connection
 	privateTags map[string]map[string]interface{}
+
+	currentGameID string `json:"currentGameId"`
+	currentRoomID string `json:"currentRoomID"`
 }
 
 func checkNickname(nick string) bool {
@@ -132,14 +133,29 @@ func MakePlayer(nick string, password string) (*Player, error) {
 }
 
 func (p *Player) Game() *Game {
-	return GetGame(p.CurrentGameID)
+	return GetGame(p.currentGameID)
+}
+func (p *Player) SetGame(game *Game) {
+	p.currentGameID = game.ID
 }
 
 func (p *Player) CurrentRoom() *Room {
-	if p.CurrentRoomID == "" {
+	return p.Game().GetRoom(p.currentRoomID)
+}
+
+func (p *Player) JoinRoom(room *Room) error {
+	if currRoom := p.CurrentRoom(); currRoom != nil {
+		if err := currRoom.RemovePlayer(p); err != nil {
+			return err
+		}
+	}
+
+	if room == nil {
+		p.currentRoomID = ""
 		return nil
 	}
-	return p.Game().GetRoom(p.CurrentRoomID)
+
+	return room.AddPlayer(p)
 }
 
 func (p *Player) Send(method string, args ...interface{}) (interface{}, error) {
