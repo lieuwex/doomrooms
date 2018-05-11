@@ -77,7 +77,7 @@ extract("connections/player.go",
         lambda line: re.match(r"\s*default:", line),
         lambda line: None,
         lambda line: int(re.search(r"expectArgs\(([^)]*)\)", line).group(1)),
-        lambda line: re.search(r"(?:(\w*)\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
+        lambda line: re.search(r"(?:(\w*)(?:,\s*ok\s*)?\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
 
 extract("connections/playerCommands.go",
         lambda line: re.match(r"func onPlayerCommand", line),
@@ -86,7 +86,7 @@ extract("connections/playerCommands.go",
         lambda line: re.match(r"\}", line),
         lambda line: re.match(r"\thandle(Game|Room)Command\(", line).group(1),
         lambda line: int(re.match(r"\thandle(?:Game|Room)?Command\(\"[^\"]*\",\s*(\d+)", line).group(1)),
-        lambda line: re.search(r"(?:(\w*)\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
+        lambda line: re.search(r"(?:(\w*)(?:,\s*ok\s*)?\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
 
 extract("connections/serverApi.go",
         lambda line: re.match(r"func onGameServerCommand", line),
@@ -95,14 +95,16 @@ extract("connections/serverApi.go",
         lambda line: re.match(r"\}", line),
         lambda line: None,
         lambda line: int(re.match(r"\thandleCommand\(\"[^\"]*\",\s*(\d+)", line).group(1)),
-        lambda line: re.search(r"(?:(\w*)\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
+        lambda line: re.search(r"(?:(\w*)(?:,\s*ok\s*)?\s*:?=\s*)?msg\.Args\[(\d+)\](?:\.\(([^)]*)\))?", line).groups())
 
 # print(gentries)
 
 for fname, methods in gentries:
-    print("----------------------------")
-    print("File '{}'".format(fname))
-    print("----------------------------")
+    title = "File '{}'".format(fname)
+
+    print("-" * len(title))
+    print(title)
+    print("-" * len(title))
     for method, nargs, args, info in methods:
         line = "'{}' ({})".format(method, str(nargs) if nargs != -1 else "...")
         if info:
