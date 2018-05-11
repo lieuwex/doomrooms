@@ -126,8 +126,14 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	}
 
 	handleCommand("attach-game", 2, func() (interface{}, string) {
-		gameID := msg.Args[0].(string)
-		force := msg.Args[1].(bool)
+		gameID, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		force, ok := msg.Args[1].(bool)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		if gs.Game() != nil {
 			// TODO: handle old game
@@ -151,8 +157,14 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	})
 
 	handleCommand("make-game", 2, func() (interface{}, string) {
-		gameID := msg.Args[0].(string)
-		gameName := msg.Args[1].(string)
+		gameID, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		gameName, ok := msg.Args[1].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		if gs.Game() != nil {
 			// TODO: handle old game
@@ -168,8 +180,14 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	})
 
 	handleCommand("set-notif-option", 2, func() (interface{}, string) {
-		key := msg.Args[0].(string)
-		val := msg.Args[1].(string)
+		key, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		val, ok := msg.Args[1].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		gs.NotifyOptions[key] = val
 		return gs.NotifyOptions, ""
@@ -180,7 +198,10 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	})
 
 	handleCommand("search-rooms", 1, func() (interface{}, string) {
-		query := msg.Args[0].(string)
+		query, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 		rooms := gs.Game().SearchRooms(query, true)
 		return rooms, ""
 	})
@@ -188,7 +209,10 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	// left for basic communication, use PipeSessions for bigger amounts of
 	// communcation instead.
 	handleCommand("message-player", -1, func() (interface{}, string) {
-		nick := msg.Args[0].(string)
+		nick, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 		args := msg.Args[1:]
 
 		p := GetPlayer(nick)
@@ -205,7 +229,10 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	})
 
 	handleCommand("get-private-player-tags", 1, func() (interface{}, string) {
-		nick := msg.Args[0].(string)
+		nick, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		p := GetPlayer(nick)
 		if p == nil {
@@ -217,8 +244,14 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	})
 
 	handleCommand("set-private-player-tags", 2, func() (interface{}, string) {
-		nick := msg.Args[0].(string)
-		tags := msg.Args[1].(map[string]interface{})
+		nick, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		tags, ok := msg.Args[1].(map[string]interface{})
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		p := GetPlayer(nick)
 		if p == nil {
@@ -230,7 +263,10 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	})
 
 	handleCommand("start-game", 1, func() (interface{}, string) {
-		roomID := msg.Args[0].(string)
+		roomID, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		room := gs.Game().GetRoom(roomID)
 		if room == nil {

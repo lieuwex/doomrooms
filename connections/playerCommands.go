@@ -51,7 +51,10 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	}
 
 	handleCommand("set-game", 1, func() (interface{}, string) {
-		gameID := msg.Args[0].(string)
+		gameID, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		g := GetGame(gameID)
 		if g == nil {
@@ -63,8 +66,14 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleCommand("send-private-chat", 2, func() (interface{}, string) {
-		nick := msg.Args[0].(string)
-		line := msg.Args[1].(string)
+		nick, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		line, ok := msg.Args[1].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		target := GetPlayer(nick)
 		if target == nil {
@@ -80,7 +89,10 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleCommand("set-tags", 1, func() (interface{}, string) {
-		tags := msg.Args[0].(map[string]interface{})
+		tags, ok := msg.Args[0].(map[string]interface{})
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		player.Tags = tags
 		return tags, ""
@@ -101,9 +113,18 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleGameCommand("make-room", 3, func() (interface{}, string) {
-		name := msg.Args[0].(string)
-		hidden := msg.Args[1].(bool)
-		options := msg.Args[2].(map[string]interface{})
+		name, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		hidden, ok := msg.Args[1].(bool)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		options, ok := msg.Args[2].(map[string]interface{})
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		game := player.Game()
 
@@ -123,10 +144,16 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "not-enough-args"
 		}
 
-		id := msg.Args[0].(string)
+		id, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 		givenPass := ""
 		if nargs > 1 {
-			givenPass = msg.Args[1].(string)
+			givenPass, ok = msg.Args[1].(string)
+			if !ok {
+				return nil, "invalid-type"
+			}
 		}
 
 		room := player.Game().GetRoom(id)
@@ -152,19 +179,28 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleGameCommand("get-room", 1, func() (interface{}, string) {
-		id := msg.Args[0].(string)
+		id, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 		room := player.Game().GetRoom(id)
 		return room, ""
 	})
 
 	handleGameCommand("search-rooms", 1, func() (interface{}, string) {
-		query := msg.Args[0].(string)
+		query, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 		rooms := player.Game().SearchRooms(query, false)
 		return rooms, ""
 	})
 
 	handleRoomCommand("send-room-chat", 1, func() (interface{}, string) {
-		line := msg.Args[0].(string)
+		line, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		for _, p := range roomOthers() {
 			p.Emit("room-chat", player.Nickname, line)
@@ -173,8 +209,14 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return nil, ""
 	})
 	handleRoomCommand("send-filtered-room-chat", 2, func() (interface{}, string) {
-		line := msg.Args[0].(string)
-		filter := msg.Args[1].(map[string]interface{})
+		line, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		filter, ok := msg.Args[1].(map[string]interface{})
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		for _, p := range roomOthers() {
 			if !p.TagsMatch(filter) {
@@ -188,7 +230,10 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleRoomCommand("invite-player", 1, func() (interface{}, string) {
-		nick := msg.Args[0].(string)
+		nick, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		p := GetPlayer(nick)
 		if p == nil {
@@ -200,7 +245,10 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return nil, ""
 	})
 	handleRoomCommand("uninvite-player", 1, func() (interface{}, string) {
-		nick := msg.Args[0].(string)
+		nick, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 
 		p := GetPlayer(nick)
 		if p == nil {
@@ -213,8 +261,14 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleRoomCommand("kick-player", 2, func() (interface{}, string) {
-		nick := msg.Args[0].(string)
-		reason := msg.Args[1].(string)
+		nick, ok := msg.Args[0].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
+		reason, ok := msg.Args[1].(string)
+		if !ok {
+			return nil, "invalid-type"
+		}
 		room := player.CurrentRoom()
 
 		if room.Admin != player {
