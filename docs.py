@@ -99,13 +99,22 @@ extract("connections/serverApi.go",
 
 # print(gentries)
 
+firstEntry = True
 for fname, methods in gentries:
+    if firstEntry: firstEntry = False
+    else: print("\n")
+
     title = "File '{}'".format(fname)
 
     print("-" * len(title))
     print(title)
     print("-" * len(title))
+
+    firstMethod = True
     for method, nargs, args, info in methods:
+        if firstMethod: firstMethod = False
+        else: print()
+
         line = "'{}' ({})".format(method, str(nargs) if nargs != -1 else "...")
         if info:
             line += " [{}]".format(info)
@@ -121,7 +130,3 @@ for fname, methods in gentries:
 
         for tag, idx, typ in args:
             print("  {}: '{}' ({})".format(str(idx), tag, typ))
-
-        print()
-
-    print()
