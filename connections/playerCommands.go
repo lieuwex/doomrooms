@@ -6,7 +6,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	handled := false
 
 	roomOthers := func() []*Player {
-		res := player.CurrentRoom().Players[:0]
+		var res []*Player
 		for _, p := range player.CurrentRoom().Players {
 			if p != player {
 				res = append(res, p)
@@ -128,7 +128,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 		game := player.Game()
 
-		room := game.MakeRoom(player, name, hidden, options)
+		room := game.MakeRoom(name, hidden, options)
 		if err := player.JoinRoom(room); err != nil {
 			return nil, err.Error()
 		}

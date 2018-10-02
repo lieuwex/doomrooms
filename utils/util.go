@@ -22,10 +22,8 @@ func FileExists(path string) (bool, error) {
 
 func GenerateUID(length int) (string, error) {
 	bytes := make([]byte, length)
-	_, err := rand.Read(bytes)
-	if err != nil {
+	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}
-
 	return base32.StdEncoding.EncodeToString(bytes)[:length], nil
 }

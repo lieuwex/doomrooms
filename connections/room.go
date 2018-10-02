@@ -33,11 +33,28 @@ func (r *Room) AddPlayer(player *Player) error {
 		return fmt.Errorf("player already in room")
 	}
 
+	if room := player.CurrentRoom(); room != nil {
+		if err := room.RemovePlayer(player); err != nil {
+			return err
+		}
+	}
+
+	player.CurrentRoomID = r.ID
+
 	r.UninvitePlayer(player)
 
-	r.Broadcast("player-join", player.Nickname)
 	r.Players = append(r.Players, player)
-	player.currentRoomID = r.ID
+	if err := r.Broadcast("player-join", player.Nickname); err != nil {
+		return err
+	}
+
+	if r.Admin == nil {
+		r.Admin = player
+		if err := r.Broadcast("admin-change", r.Admin.Nickname); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -48,14 +65,18 @@ func (r *Room) RemovePlayer(player *Player) error {
 	}
 
 	r.Players = append(r.Players[:i], r.Players[i+1:]...)
-	player.currentRoomID = ""
+	player.CurrentRoomID = ""
 
 	if r.Admin == player {
 		r.Admin = r.Players[0]
-		r.Broadcast("admin-change", r.Admin.Nickname)
+		if err := r.Broadcast("admin-change", r.Admin.Nickname); err != nil {
+			return err
+		}
 	}
 
-	r.Broadcast("player-leave", player.Nickname)
+	if err := r.Broadcast("player-leave", player.Nickname); err != nil {
+		return err
+	}
 
 	if len(r.Players) == 0 {
 		return r.Game().RemoveRoom(r.ID)
@@ -80,8 +101,7 @@ func (r *Room) InvitePlayer(inviter, player *Player) error {
 
 	r.invited = append(r.invited, player) // REVIEW: safe?
 
-	err := player.Emit("room-invite", inviter, r)
-	if err != nil {
+	if err := player.Emit("room-invite", inviter, r); err != nil {
 		return err
 	}
 
@@ -98,8 +118,7 @@ func (r *Room) Broadcast(event string, args ...interface{}) error {
 	args = append([]interface{}{r.ID}, args...)
 
 	for _, player := range r.Players {
-		err := player.Emit(event, args...)
-		if err != nil {
+		if err := player.Emit(event, args...); err != nil {
 			return err
 		}
 	}
@@ -117,8 +136,20 @@ func (r *Room) Start() error {
 	}
 
 	r.Started = true
-	r.Broadcast("game-start", r)
-	r.Game().GameServer().Emit("game-start", r)
+	if err := r.Broadcast("game-start", r); err != nil {
+		return err
+	}
+	return r.Game().GameServer().Emit("game-start", r)
+}
 
-	return nil
+func (r *Room) Stop() error { // REVIEW
+	if !r.Started {
+		return fmt.Errorf("already stopped")
+	}
+
+	r.Started = false
+	if err := r.Broadcast("game-stop", r); err != nil {
+		return err
+	}
+	return r.Game().GameServer().Emit("game-stop", r)
 }

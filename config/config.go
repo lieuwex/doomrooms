@@ -47,8 +47,7 @@ func ReadConfig(cm *communicators.CommunicatorManager, filename string) error {
 
 	for service, settings := range config {
 		for _, setting := range settings {
-			err = HandleService(cm, service, setting)
-			if err != nil {
+			if err := HandleService(cm, service, setting); err != nil {
 				// REVIEW
 				return err
 			}

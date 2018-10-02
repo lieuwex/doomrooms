@@ -49,7 +49,7 @@ func MakeGame(id string, name string) (*Game, error) {
 	return g, nil
 }
 
-func (g *Game) MakeRoom(creator *Player, name string, hidden bool, options map[string]interface{}) *Room {
+func (g *Game) MakeRoom(name string, hidden bool, options map[string]interface{}) *Room {
 	id := g.idGen.UniqIDf() // this should always be unique
 	room := &Room{
 		ID:      id,
@@ -58,8 +58,6 @@ func (g *Game) MakeRoom(creator *Player, name string, hidden bool, options map[s
 		Options: options,
 		Started: false,
 		GameID:  g.ID,
-
-		Admin: creator,
 	}
 	g.rooms[id] = room
 	return room
@@ -87,6 +85,18 @@ func (g *Game) RemoveRoom(id string) error {
 	g.GameServer().Emit("room-remove", room)
 
 	return nil
+}
+
+func (g *Game) Rooms(includeHidden bool) []*Room {
+	var res []*Room
+
+	for _, r := range g.rooms {
+		if !r.Hidden || includeHidden {
+			res = append(res, r)
+		}
+	}
+
+	return res
 }
 
 // TODO: also support some shit like r.Options

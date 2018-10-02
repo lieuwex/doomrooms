@@ -86,6 +86,8 @@ func HandleGameServerConnection(conn *Connection) {
 			"room-join":     "off",
 			"room-leave":    "off",
 
+			"game-stop": "on",
+
 			// why would anyone want to set these to "off"?
 			"game-start":  "on",
 			"pipe-opened": "on",
@@ -194,7 +196,7 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 	})
 
 	handleCommand("list-rooms", 0, func() (interface{}, string) {
-		return gs.Game().rooms, ""
+		return gs.Game().Rooms(true), ""
 	})
 
 	handleCommand("search-rooms", 1, func() (interface{}, string) {
