@@ -100,18 +100,17 @@ func (g *Game) Rooms(includeHidden bool) []*Room {
 }
 
 // TODO: also support some shit like r.Options
-func (g *Game) SearchRooms(name string, includeHidden bool) []*Room {
+func (g *Game) SearchRooms(query string, includeHidden bool) []*Room {
 	res := make([]*Room, 0)
-	name = strings.ToLower(name)
+	query = strings.ToLower(query)
 
 	for _, r := range g.rooms {
 		if r.Hidden && !includeHidden {
 			continue
 		}
 
-		roomName := strings.ToLower(r.Name)
-		if strings.Contains(roomName, name) ||
-			strings.Contains(name, roomName) {
+		name := strings.ToLower(r.Name)
+		if strings.Contains(name, query) || strings.Contains(query, name) {
 			res = append(res, r)
 		}
 	}
