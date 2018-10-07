@@ -30,23 +30,25 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		conn.Reply(msg.ID, err, res)
 	}
 
-	handleGameCommand := func(method string, argCount int, fn func() (interface{}, string)) {
+	handleGameCommand := func(method string, argCount int, fn func(*Game) (interface{}, string)) {
 		handleCommand(method, argCount, func() (interface{}, string) {
-			if player.Game() == nil {
+			game := player.Game()
+			if game == nil {
 				return nil, "no game set"
 			}
 
-			return fn()
+			return fn(game)
 		})
 	}
 
-	handleRoomCommand := func(method string, argCount int, fn func() (interface{}, string)) {
-		handleGameCommand(method, argCount, func() (interface{}, string) {
-			if player.CurrentRoom() == nil {
+	handleRoomCommand := func(method string, argCount int, fn func(*Game, *Room) (interface{}, string)) {
+		handleGameCommand(method, argCount, func(game *Game) (interface{}, string) {
+			room := player.CurrentRoom()
+			if room == nil {
 				return nil, "not in a room"
 			}
 
-			return fn()
+			return fn(game, room)
 		})
 	}
 
@@ -98,7 +100,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return tags, ""
 	})
 
-	handleGameCommand("open-pipe", 0, func() (interface{}, string) {
+	handleGameCommand("open-pipe", 0, func(game *Game) (interface{}, string) {
 		gs := player.Game().GameServer()
 		ps, err := MakePipeSession()
 		if err != nil {
@@ -108,11 +110,11 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return ps.PrivateID, ""
 	})
 
-	handleGameCommand("get-current-room", 0, func() (interface{}, string) {
+	handleGameCommand("get-current-room", 0, func(game *Game) (interface{}, string) {
 		return player.CurrentRoom(), ""
 	})
 
-	handleGameCommand("make-room", 3, func() (interface{}, string) {
+	handleGameCommand("make-room", 3, func(game *Game) (interface{}, string) {
 		name, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -126,8 +128,6 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "invalid-type"
 		}
 
-		game := player.Game()
-
 		room := game.MakeRoom(name, hidden, options)
 		if err := player.JoinRoom(room); err != nil {
 			return nil, err.Error()
@@ -138,7 +138,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return room, ""
 	})
 
-	handleGameCommand("join-room", -1, func() (interface{}, string) {
+	handleGameCommand("join-room", -1, func(game *Game) (interface{}, string) {
 		nargs := len(msg.Args)
 		if nargs == 0 {
 			return nil, "not-enough-args"
@@ -178,7 +178,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return room, ""
 	})
 
-	handleGameCommand("get-room", 1, func() (interface{}, string) {
+	handleGameCommand("get-room", 1, func(game *Game) (interface{}, string) {
 		id, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -187,7 +187,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return room, ""
 	})
 
-	handleGameCommand("search-rooms", 1, func() (interface{}, string) {
+	handleGameCommand("search-rooms", 1, func(game *Game) (interface{}, string) {
 		query, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -196,7 +196,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return rooms, ""
 	})
 
-	handleRoomCommand("send-room-chat", 1, func() (interface{}, string) {
+	handleRoomCommand("send-room-chat", 1, func(game *Game, room *Room) (interface{}, string) {
 		line, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -208,7 +208,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 		return nil, ""
 	})
-	handleRoomCommand("send-filtered-room-chat", 2, func() (interface{}, string) {
+	handleRoomCommand("send-filtered-room-chat", 2, func(game *Game, room *Room) (interface{}, string) {
 		line, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -229,7 +229,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return nil, ""
 	})
 
-	handleRoomCommand("invite-player", 1, func() (interface{}, string) {
+	handleRoomCommand("invite-player", 1, func(game *Game, room *Room) (interface{}, string) {
 		nick, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -244,7 +244,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 		return nil, ""
 	})
-	handleRoomCommand("uninvite-player", 1, func() (interface{}, string) {
+	handleRoomCommand("uninvite-player", 1, func(game *Game, room *Room) (interface{}, string) {
 		nick, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -260,7 +260,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return nil, ""
 	})
 
-	handleRoomCommand("kick-player", 2, func() (interface{}, string) {
+	handleRoomCommand("kick-player", 2, func(game *Game, room *Room) (interface{}, string) {
 		nick, ok := msg.Args[0].(string)
 		if !ok {
 			return nil, "invalid-type"
@@ -269,7 +269,6 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		if !ok {
 			return nil, "invalid-type"
 		}
-		room := player.CurrentRoom()
 
 		if room.Admin != player {
 			return nil, "not-admin"
@@ -288,16 +287,14 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return nil, ""
 	})
 
-	handleRoomCommand("leave-room", 0, func() (interface{}, string) {
-		if err := player.CurrentRoom().RemovePlayer(player); err != nil {
+	handleRoomCommand("leave-room", 0, func(game *Game, room *Room) (interface{}, string) {
+		if err := room.RemovePlayer(player); err != nil {
 			return nil, err.Error()
 		}
 		return nil, ""
 	})
 
-	handleRoomCommand("remove-room", 0, func() (interface{}, string) {
-		room := player.CurrentRoom()
-
+	handleRoomCommand("remove-room", 0, func(game *Game, room *Room) (interface{}, string) {
 		if room.Admin != player {
 			return nil, "not-admin"
 		}
@@ -308,9 +305,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		return nil, ""
 	})
 
-	handleRoomCommand("start", 0, func() (interface{}, string) {
-		room := player.CurrentRoom()
-
+	handleRoomCommand("start", 0, func(game *Game, room *Room) (interface{}, string) {
 		if room.Admin != player {
 			return nil, "not-admin"
 		}
@@ -325,7 +320,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 
 	// left for basic communication, use PipeSessions for bigger amounts of
 	// communcation instead.
-	handleRoomCommand("message-game-server", -1, func() (interface{}, string) {
+	handleRoomCommand("message-game-server", -1, func(game *Game, room *Room) (interface{}, string) {
 		gs := player.Game().gameServer
 		res, err := gs.Send("player-message", msg.Args...)
 		if err != nil {
