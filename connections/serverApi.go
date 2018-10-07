@@ -30,11 +30,20 @@ func (gs *GameServer) Emit(event string, args ...interface{}) error {
 	val := gs.NotifyOptions[event]
 	b := val == "on" || val == ""
 
+	var err error
 	if b {
 		args = append([]interface{}{event}, args...)
-		return gs.Connection.Write("emit", args...)
+		err = gs.Connection.Write("emit", args...)
 	}
-	return nil
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"event": event,
+			"args":  args,
+			"error": err.Error(),
+		}).Info("error while emitting event to gameserver")
+	}
+	return err
 }
 
 var GameServers = make([]*GameServer, 0)
