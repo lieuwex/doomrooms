@@ -35,14 +35,5 @@ func (g *IDGenerator) UniqIDf() string {
 	return FormatID(g.UniqID())
 }
 
-var gen = MakeIDGenerator()
-
-// UniqID returns and increments the current index
-func UniqID() uint64 {
-	return gen.UniqID()
-}
-
-// UniqIDf returns a new 'random' string id and increaes the index
-func UniqIDf() string {
-	return gen.UniqIDf()
-}
+// Global is the global ID generator
+var Global = MakeIDGenerator()
