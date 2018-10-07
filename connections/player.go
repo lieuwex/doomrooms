@@ -1,6 +1,7 @@
 package connections
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -41,8 +42,17 @@ func HandlePlayerConnection(conn *Connection) {
 			return
 		}
 
-		username := msg.Args[0].(string)
-		password := msg.Args[1].(string)
+		username, ok := msg.Args[0].(string)
+		if !ok {
+			err = errors.New("invalid-type")
+			break
+		}
+		password, ok := msg.Args[1].(string)
+		if !ok {
+			err = errors.New("invalid-type")
+			break
+		}
+
 		p = GetPlayer(username)
 		if p == nil {
 			err = fmt.Errorf("User not found")
@@ -55,8 +65,16 @@ func HandlePlayerConnection(conn *Connection) {
 			return
 		}
 
-		username := msg.Args[0].(string)
-		password := msg.Args[1].(string)
+		username, ok := msg.Args[0].(string)
+		if !ok {
+			err = errors.New("invalid-type")
+			break
+		}
+		password, ok := msg.Args[1].(string)
+		if !ok {
+			err = errors.New("invalid-type")
+			break
+		}
 
 		p, err = MakePlayer(username, password)
 
