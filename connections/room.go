@@ -33,21 +33,25 @@ func (r *Room) AddPlayer(player *Player) error {
 		return fmt.Errorf("player already in room")
 	}
 
+	// remove the player from their current room, if any
 	if room := player.CurrentRoom(); room != nil {
 		if err := room.RemovePlayer(player); err != nil {
 			return err
 		}
 	}
 
-	player.CurrentRoomID = r.ID
-
 	r.UninvitePlayer(player)
 
+	// add player
+	player.CurrentRoomID = r.ID
 	r.Players = append(r.Players, player)
+
+	// broadcast their join
 	if err := r.Broadcast("player-join", player.Nickname); err != nil {
 		return err
 	}
 
+	// set current player as admin, if no other player has been set as one
 	if r.Admin == nil {
 		r.Admin = player
 		if err := r.Broadcast("admin-change", r.Admin.Nickname); err != nil {
@@ -59,14 +63,18 @@ func (r *Room) AddPlayer(player *Player) error {
 }
 
 func (r *Room) RemovePlayer(player *Player) error {
-	i := playerIndex(r.Players, player)
-	if i == -1 {
+	playerIndex := playerIndex(r.Players, player)
+	if playerIndex == -1 {
 		return errors.New("player not in room")
+	} else if len(r.Players) == 1 {
+		return errors.New("current player only player in room")
 	}
 
-	r.Players = append(r.Players[:i], r.Players[i+1:]...)
+	// remove player
+	r.Players = append(r.Players[:playerIndex], r.Players[playerIndex+1:]...)
 	player.CurrentRoomID = ""
 
+	// if the current player is the admin, promote another user to admin
 	if r.Admin == player {
 		r.Admin = r.Players[0]
 		if err := r.Broadcast("admin-change", r.Admin.Nickname); err != nil {
@@ -74,13 +82,11 @@ func (r *Room) RemovePlayer(player *Player) error {
 		}
 	}
 
+	// broadcast leave
 	if err := r.Broadcast("player-leave", player.Nickname); err != nil {
 		return err
 	}
 
-	if len(r.Players) == 0 {
-		return r.Game().RemoveRoom(r.ID)
-	}
 	return nil
 }
 

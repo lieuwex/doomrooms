@@ -288,6 +288,13 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 	})
 
 	handleRoomCommand("leave-room", 0, func(game *Game, room *Room) (interface{}, string) {
+		if len(room.Players) == 1 {
+			if err := game.RemoveRoom(room.ID); err != nil {
+				return nil, err.Error()
+			}
+			return nil, ""
+		}
+
 		if err := room.RemovePlayer(player); err != nil {
 			return nil, err.Error()
 		}
