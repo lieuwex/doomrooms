@@ -129,7 +129,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		}
 
 		room := game.MakeRoom(name, hidden, options)
-		if err := player.JoinRoom(room); err != nil {
+		if err := room.AddPlayer(player); err != nil {
 			return nil, err.Error()
 		}
 
@@ -169,7 +169,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "incorrect-password"
 		}
 
-		if err := player.JoinRoom(room); err != nil {
+		if err := room.AddPlayer(player); err != nil {
 			return nil, err.Error()
 		}
 
