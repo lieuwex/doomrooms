@@ -5,12 +5,12 @@ import (
 
 	"doomrooms/types"
 
-	log "github.com/sirupsen/logrus"
+	"log"
 )
 
 type GameServer struct {
 	Connection    *Connection
-	NotifyOptions map[string]string
+	NotifyOptions map[string]string // TODO
 }
 
 func (gs *GameServer) Game() *Game {
@@ -37,11 +37,7 @@ func (gs *GameServer) Emit(event string, args ...interface{}) error {
 	}
 
 	if err != nil {
-		log.WithFields(log.Fields{
-			"event": event,
-			"args":  args,
-			"error": err.Error(),
-		}).Info("error while emitting event to gameserver")
+		log.Printf("error emitting event %s (args=%#v) to gameserver: %s", event, args, err)
 	}
 	return err
 }
@@ -109,7 +105,7 @@ func HandleGameServerConnection(conn *Connection) {
 	for {
 		msg := <-conn.Chan()
 		if conn.Closed() {
-			log.Info("connection closed")
+			log.Println("connection closed")
 			break
 		}
 

@@ -7,12 +7,11 @@ import (
 	"doomrooms/utils"
 	"flag"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"os/signal"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func onInterrupt(fn func()) {
@@ -36,7 +35,6 @@ func parseFlags() {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	utils.SetLogrusFormatter()
 	parseFlags()
 
 	exists, err := utils.FileExists(configPath)
@@ -51,23 +49,19 @@ func main() {
 	cm := communicators.MakeCommunicatorManager()
 
 	onInterrupt(func() {
-		log.Info("stopping all running services")
+		log.Println("stopping all running services")
 		cm.StopServices()
 	})
 
 	err = config.ReadConfig(cm, configPath)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Fatal("error while reading config")
+		log.Printf("error while reading config: %s", err)
 	}
 
 	go func() {
 		for {
 			connection := <-cm.PlayerConnectionCh()
-			log.WithFields(log.Fields{
-				"conn": connection,
-			}).Info("got new player connection in main.go")
+			log.Printf("got new player connection in main.go: %#v", connection)
 			go connections.HandlePlayerConnection(connection)
 		}
 	}()
@@ -75,9 +69,7 @@ func main() {
 	go func() {
 		for {
 			connection := <-cm.GameServerConnectionCh()
-			log.WithFields(log.Fields{
-				"conn": connection,
-			}).Info("got new game server connection in main.go")
+			log.Printf("got new gameserver connection in main.go: %#v", connection)
 			go connections.HandleGameServerConnection(connection)
 		}
 	}()
@@ -85,9 +77,7 @@ func main() {
 	go func() {
 		for {
 			connection := <-cm.PipeSessionConnectionCh()
-			log.WithFields(log.Fields{
-				"conn": connection,
-			}).Info("got new pipe session connection in main.go")
+			log.Printf("got new pipesession connection in main.go: %#v", connection)
 			go connections.HandlePipeSesionConnection(connection) // REVIEW
 		}
 	}()

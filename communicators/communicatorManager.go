@@ -3,10 +3,9 @@ package communicators
 import (
 	"doomrooms/communicators/json"
 	"doomrooms/connections"
-	"doomrooms/utils"
 	"fmt"
-
-	log "github.com/sirupsen/logrus"
+	"log"
+	"os"
 )
 
 type CommunicatorManager struct {
@@ -24,9 +23,9 @@ func MakeCommunicatorManager() *CommunicatorManager {
 		playerConnCh:      make(chan *connections.Connection),
 		gameServerConnCh:  make(chan *connections.Connection),
 		pipeSessionConnCh: make(chan *connections.Connection),
-		log:               log.New(),
+
+		log: log.New(os.Stderr, "CommunicatorManager", log.LstdFlags),
 	}
-	cm.log.Formatter = utils.Formatter
 	return cm
 }
 
@@ -68,12 +67,7 @@ func (cm *CommunicatorManager) StartService(service string, host string, port st
 		}
 	}()
 
-	cm.log.WithFields(log.Fields{
-		"service": service,
-		"host":    host,
-		"port":    port,
-		"type":    typ,
-	}).Info("started service")
+	cm.log.Printf("started service %s (%s) on %s:%s", service, typ, host, port)
 
 	return nil
 }

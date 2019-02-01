@@ -15,7 +15,6 @@ type IDGenerator struct {
 	index uint64
 }
 
-// REVIEW
 // MakeIDGenerator makes an IDGenerator
 func MakeIDGenerator() IDGenerator {
 	return IDGenerator{

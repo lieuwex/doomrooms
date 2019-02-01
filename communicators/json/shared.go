@@ -4,8 +4,9 @@ import (
 	"doomrooms/types"
 	"encoding/json"
 
+	"log"
+
 	"github.com/mitchellh/mapstructure"
-	log "github.com/sirupsen/logrus"
 )
 
 func parseBytes(bytes []byte) types.Thing {
@@ -26,9 +27,7 @@ func parseBytes(bytes []byte) types.Thing {
 		}
 	}
 
-	log.WithFields(log.Fields{
-		"msg": string(bytes),
-	}).Error("invalid message received")
+	log.Printf("invalid message received: %#v", bytes)
 
 	return nil
 }

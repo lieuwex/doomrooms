@@ -8,7 +8,7 @@ import (
 	"io"
 	"net"
 
-	log "github.com/sirupsen/logrus"
+	"log"
 )
 
 const delim = '\n'
@@ -99,16 +99,12 @@ func makeTCPConnection(socket *net.TCPConn) types.NetConnection {
 			raw, err := reader.ReadBytes('\n')
 			if err != nil {
 				if err != io.EOF {
-					log.WithFields(log.Fields{
-						"error": err,
-					}).Error("error while reading from connection")
+					log.Printf("error reading from connection: %s", err)
 				}
-				netConn.closed = true
-				close(netConn.ch)
-				close(netConn.rawCh)
-				return
+				break
 			}
 
+			// REVIEW: huh?
 			select {
 			case netConn.rawCh <- raw:
 			default:
@@ -121,6 +117,10 @@ func makeTCPConnection(socket *net.TCPConn) types.NetConnection {
 
 			netConn.ch <- msg
 		}
+
+		netConn.closed = true
+		close(netConn.ch)
+		close(netConn.rawCh)
 	}()
 
 	return netConn
@@ -160,6 +160,8 @@ func (conn *TCPConnection) WriteRaw(bytes []byte) error {
 }
 
 func (conn *TCPConnection) Close() error {
+	// REVIEW: how does this compare to makeTCPConnection?
+
 	if conn.closed {
 		return nil
 	}

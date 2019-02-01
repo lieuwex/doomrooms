@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"log"
 )
 
 const bufferSize = 100
@@ -132,7 +132,7 @@ func HandlePipeSesionConnection(conn *Connection) {
 
 	bytes := <-conn.netConn.RawChannel()
 	if conn.closed {
-		log.Info("connection closed")
+		log.Println("connection closed")
 		return
 	}
 

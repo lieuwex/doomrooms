@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"log"
+
 	"github.com/kmanley/golang-tuple"
-	log "github.com/sirupsen/logrus"
 )
 
 var Players = make(map[string]*Player)
@@ -20,7 +21,7 @@ func HandlePlayerConnection(conn *Connection) {
 
 	msg := <-conn.Chan()
 	if conn.closed {
-		log.Info("connection closed")
+		log.Println("connection closed")
 		return
 	}
 
@@ -55,10 +56,10 @@ func HandlePlayerConnection(conn *Connection) {
 
 		p = GetPlayer(username)
 		if p == nil {
-			err = fmt.Errorf("User not found")
+			err = errors.New("User not found")
 		} else if p.password != password {
 			p = nil
-			err = fmt.Errorf("Invalid password")
+			err = errors.New("Invalid password")
 		}
 	case "make-player":
 		if !expectArgs(2) {
@@ -93,15 +94,13 @@ func HandlePlayerConnection(conn *Connection) {
 	p.addConnection(conn)
 	defer p.removeConnection(conn)
 
-	log.WithFields(log.Fields{
-		"player": p,
-	}).Info("got player")
+	log.Printf("got player %#v", p)
 	conn.Reply(msg.ID, "", p)
 
 	for {
 		msg := <-conn.Chan()
 		if conn.closed {
-			log.Info("connection closed")
+			log.Println("connection closed")
 			break
 		}
 
@@ -134,7 +133,7 @@ func checkNickname(nick string) bool {
 
 func MakePlayer(nick string, password string) (*Player, error) {
 	for !checkNickname(nick) {
-		return nil, fmt.Errorf("nickname already in use")
+		return nil, errors.New("nickname already in use")
 	}
 
 	p := &Player{
@@ -201,7 +200,7 @@ func (p *Player) Emit(event string, args ...interface{}) error {
 func (p *Player) addConnection(conn *Connection) error {
 	for _, x := range p.connections {
 		if x == conn {
-			return fmt.Errorf("connection already added")
+			return errors.New("connection already added")
 		}
 	}
 
@@ -217,7 +216,7 @@ func (p *Player) removeConnection(conn *Connection) error {
 		}
 	}
 	if index == -1 {
-		return fmt.Errorf("no matching connection found")
+		return errors.New("no matching connection found")
 	}
 
 	p.connections[index] = p.connections[len(p.connections)-1]

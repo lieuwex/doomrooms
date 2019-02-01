@@ -2,53 +2,45 @@
 
 
 [[projects]]
+  digest = "1:167b6f65a6656de568092189ae791253939f076df60231fdd64588ac703892a1"
   name = "github.com/BurntSushi/toml"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "b26d9c308763d68093482582cea63d69be07a0f0"
   version = "v0.3.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:2bf1bbdc89107fb1512dc42fdd2810582e71db93ffa51f3c11e861c93e37c0fb"
   name = "github.com/kmanley/golang-tuple"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "6efac34f17ab1392725ac5c959556c405a8098da"
 
 [[projects]]
   branch = "master"
+  digest = "1:eeb1f466766c40a4656b090593e103d2ce327b914329232bc1d4632dae17fc4f"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
+  pruneopts = "NUT"
   revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
 
 [[projects]]
-  name = "github.com/sirupsen/logrus"
-  packages = ["."]
-  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
-  version = "v1.0.5"
-
-[[projects]]
   branch = "master"
-  name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
-  revision = "2d027ae1dddd4694d54f7a8b6cbe78dca8720226"
-
-[[projects]]
-  branch = "master"
+  digest = "1:845c2878ddaa174523d1e096d61e0ebb349855d81dde54e6dbc2c3dbf431b68a"
   name = "golang.org/x/net"
   packages = ["websocket"]
+  pruneopts = "NUT"
   revision = "f73e4c9ed3b7ebdd5f699a16a880c2b1994e50dd"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/sys"
-  packages = [
-    "unix",
-    "windows"
-  ]
-  revision = "7dfd1290c7917b7ba22824b9d24954ab3002fe24"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "79dda7613afb6a34d98d8aa2c768930fb436551c7095adbb84013d1f023d2f79"
+  input-imports = [
+    "github.com/BurntSushi/toml",
+    "github.com/kmanley/golang-tuple",
+    "github.com/mitchellh/mapstructure",
+    "golang.org/x/net/websocket",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

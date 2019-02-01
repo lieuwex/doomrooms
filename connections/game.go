@@ -4,9 +4,8 @@ import (
 	"doomrooms/utils"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var Games = make(map[string]*Game)
@@ -42,9 +41,7 @@ func MakeGame(id string, name string) (*Game, error) {
 	}
 	Games[id] = g // REVIEW: safe?
 
-	log.WithFields(log.Fields{
-		"game": g,
-	}).Info("made game")
+	log.Printf("made game %#v", g)
 
 	return g, nil
 }

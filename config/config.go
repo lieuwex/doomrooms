@@ -6,8 +6,9 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"log"
+
 	"github.com/BurntSushi/toml"
-	log "github.com/sirupsen/logrus"
 )
 
 type listenerSetting struct {
@@ -32,9 +33,8 @@ func HandleService(cm *communicators.CommunicatorManager, service string, settin
 }
 
 func ReadConfig(cm *communicators.CommunicatorManager, filename string) error {
-	log.WithFields(log.Fields{
-		"path": filename,
-	}).Info("reading config file")
+	log.Printf("reading config file %s", filename)
+
 	bytes, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err

@@ -4,7 +4,7 @@ import (
 	"doomrooms/types"
 	"errors"
 
-	log "github.com/sirupsen/logrus"
+	"log"
 )
 
 type Connection struct {
@@ -117,18 +117,12 @@ func (conn *Connection) Reply(id uint64, err string, res interface{}) error {
 }
 
 func (conn *Connection) write(msg types.Message) error {
-	log.WithFields(log.Fields{
-		"data": msg,
-	}).Info("sending")
-
+	log.Printf("conn.write(%#v)", msg)
 	return conn.netConn.Write(msg)
 }
 
 func (conn *Connection) writeRes(res types.Result) error {
-	log.WithFields(log.Fields{
-		"data": res,
-	}).Info("sending")
-
+	log.Printf("conn.writeRes(%#v)", res)
 	return conn.netConn.WriteRes(res)
 }
 
