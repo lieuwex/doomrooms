@@ -10,7 +10,7 @@ import (
 
 type GameServer struct {
 	Connection    *Connection
-	NotifyOptions map[string]string // TODO
+	NotifyOptions map[string]bool
 }
 
 func (gs *GameServer) Game() *Game {
@@ -27,19 +27,25 @@ func (gs *GameServer) Send(method string, args ...interface{}) (interface{}, err
 }
 
 func (gs *GameServer) Emit(event string, args ...interface{}) error {
-	val := gs.NotifyOptions[event]
-	b := val == "on" || val == ""
+	val, has := gs.NotifyOptions[event]
+	if !has {
+		val = true // default value should be true
+	}
 
-	var err error
-	if b {
+	if val {
 		args = append([]interface{}{event}, args...)
-		err = gs.Connection.Write("emit", args...)
+		if err := gs.Connection.Write("emit", args...); err != nil {
+			log.Printf(
+				"error emitting event %s (args=%#v) to gameserver: %s",
+				event,
+				args,
+				err,
+			)
+			return err
+		}
 	}
 
-	if err != nil {
-		log.Printf("error emitting event %s (args=%#v) to gameserver: %s", event, args, err)
-	}
-	return err
+	return nil
 }
 
 var GameServers = make([]*GameServer, 0)
@@ -85,17 +91,17 @@ func HandleGameServerConnection(conn *Connection) {
 
 	gs := &GameServer{
 		Connection: conn,
-		NotifyOptions: map[string]string{
-			"room-creation": "on",
-			"room-remove":   "on",
-			"room-join":     "off",
-			"room-leave":    "off",
+		NotifyOptions: map[string]bool{
+			"room-creation": true,
+			"room-remove":   true,
+			"room-join":     false,
+			"room-leave":    false,
 
-			"game-stop": "on",
+			"game-stop": true,
 
 			// why would anyone want to set these to "off"?
-			"game-start":  "on",
-			"pipe-opened": "on",
+			"game-start":  true,
+			"pipe-opened": true,
 		},
 	}
 
@@ -196,7 +202,7 @@ func onGameServerCommand(gs *GameServer, msg *types.Message) {
 			return nil, "invalid-type"
 		}
 
-		gs.NotifyOptions[key] = val
+		gs.NotifyOptions[key] = val == "on"
 		return gs.NotifyOptions, ""
 	})
 
