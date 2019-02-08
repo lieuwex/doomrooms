@@ -75,7 +75,7 @@ func (ps *PipeSession) BindConnection(conn *Connection) error {
 
 			case bytes := <-recvCh:
 				if err := conn.netConn.WriteRaw(bytes); err != nil {
-					fmt.Printf("ps write err %#v\n", err)
+					log.Printf("ps write err %#v\n", err)
 					return
 				}
 			}
@@ -164,6 +164,8 @@ func HandlePipeSesionConnection(conn *Connection) {
 	err := ps.BindConnection(conn)
 	if err != nil {
 		// TODO
-		fmt.Printf("PIPE ERROR: %#v\n", err)
+		log.Printf("PIPE ERROR: %#v\n", err)
 	}
+
+	log.Println("pipesession sucessfully closed")
 }

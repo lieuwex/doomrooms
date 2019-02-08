@@ -119,7 +119,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 		if !ok {
 			return nil, "invalid-type"
 		}
-		hidden, ok := msg.Args[1].(bool)
+		public, ok := msg.Args[1].(bool)
 		if !ok {
 			return nil, "invalid-type"
 		}
@@ -128,7 +128,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "invalid-type"
 		}
 
-		room := game.MakeRoom(name, hidden, options)
+		room := game.MakeRoom(name, public, options)
 		if err := room.AddPlayer(player); err != nil {
 			return nil, err.Error()
 		}
@@ -161,7 +161,7 @@ func onPlayerCommand(player *Player, conn *Connection, msg *types.Message) {
 			return nil, "room not found"
 		}
 
-		if room.Hidden && !room.PlayerInvited(player) {
+		if !room.Public && !room.PlayerInvited(player) {
 			return nil, "not-invited"
 		}
 

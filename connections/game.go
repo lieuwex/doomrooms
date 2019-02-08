@@ -46,12 +46,12 @@ func MakeGame(id string, name string) (*Game, error) {
 	return g, nil
 }
 
-func (g *Game) MakeRoom(name string, hidden bool, options map[string]interface{}) *Room {
+func (g *Game) MakeRoom(name string, public bool, options map[string]interface{}) *Room {
 	id := g.idGen.UniqIDf() // this should always be unique
 	room := &Room{
 		ID:      id,
 		Name:    name,
-		Hidden:  hidden,
+		Public:  public,
 		Options: options,
 		Started: false,
 		GameID:  g.ID,
@@ -88,7 +88,7 @@ func (g *Game) Rooms(includeHidden bool) []*Room {
 	var res []*Room
 
 	for _, r := range g.rooms {
-		if !r.Hidden || includeHidden {
+		if r.Public || includeHidden {
 			res = append(res, r)
 		}
 	}
@@ -102,7 +102,7 @@ func (g *Game) SearchRooms(query string, includeHidden bool) []*Room {
 	query = strings.ToLower(query)
 
 	for _, r := range g.rooms {
-		if r.Hidden && !includeHidden {
+		if !r.Public && !includeHidden {
 			continue
 		}
 

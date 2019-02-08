@@ -8,7 +8,7 @@ import (
 type Room struct {
 	ID      string                 `json:"id"`
 	Name    string                 `json:"name"`
-	Hidden  bool                   `json:"hidden"`
+	Public  bool                   `json:"public"`
 	Options map[string]interface{} `json:"options"`
 	Started bool                   `json:"started"`
 	GameID  string                 `json:"gameID"`

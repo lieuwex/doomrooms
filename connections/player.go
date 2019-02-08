@@ -7,7 +7,7 @@ import (
 
 	"log"
 
-	"github.com/kmanley/golang-tuple"
+	tuple "github.com/kmanley/golang-tuple"
 )
 
 var Players = make(map[string]*Player)
@@ -109,21 +109,34 @@ func HandlePlayerConnection(conn *Connection) {
 	}
 }
 
+// Player is a struct containing all information about a (persisted) player.
 type Player struct {
-	Nickname string                 `json:"nick"`
-	Tags     map[string]interface{} `json:"tags"`
+	Nickname string `json:"nick"`
+	// Tags is a public map where the person themselves can write in, the tags
+	// are visible by all players and should be treated as public information.
+	// An example of information you could present in tags is the team the
+	// player is on, or an clantag.
+	// TODO: a problem here is that the player connection is the only connection
+	// that can change this stuff. but sometimes the gameserver should also
+	// write public information. how the fuck do we want to do this shit then.
+	Tags map[string]interface{} `json:"tags"`
 
 	CurrentGameID string `json:"currentGameId"`
 	CurrentRoomID string `json:"currentRoomID"`
 
 	password    string
 	connections []*Connection
+	// privateTags is map with the keys being gameserver IDs and the values
+	// being map[string]interface{} instances where the gameserver has total
+	// control. It is designed as a way for gameservers to persist state in a
+	// private manner, the tags aren't send to any players (including the player
+	// themselves) and are not visible by other gameservers.
 	privateTags map[string]map[string]interface{}
 }
 
 func checkNickname(nick string) bool {
 	lowerNick := strings.ToLower(nick)
-	for n, _ := range Players {
+	for n := range Players {
 		if strings.ToLower(n) == lowerNick {
 			return false
 		}
@@ -197,24 +210,25 @@ func (p *Player) Emit(event string, args ...interface{}) error {
 	return nil
 }
 
-func (p *Player) addConnection(conn *Connection) error {
-	for _, x := range p.connections {
+func (p *Player) connectionIndex(conn *Connection) int {
+	for i, x := range p.connections {
 		if x == conn {
-			return errors.New("connection already added")
+			return i
 		}
 	}
+	return -1
+}
 
+func (p *Player) addConnection(conn *Connection) error {
+	if i := p.connectionIndex(conn); i > -1 {
+		return errors.New("connection already added")
+	}
 	p.connections = append(p.connections, conn) // REVIEW
 	return nil
 }
 
 func (p *Player) removeConnection(conn *Connection) error {
-	index := -1
-	for i, x := range p.connections {
-		if x == conn {
-			index = i
-		}
-	}
+	index := p.connectionIndex(conn)
 	if index == -1 {
 		return errors.New("no matching connection found")
 	}
@@ -225,6 +239,8 @@ func (p *Player) removeConnection(conn *Connection) error {
 	return nil
 }
 
+// TagsMatch checks if all the key-value pairings in tags match the stored
+// public tags in the current Player.
 func (p *Player) TagsMatch(tags map[string]interface{}) bool {
 	for key, val := range tags {
 		if p.Tags[key] != val {
