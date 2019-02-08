@@ -104,18 +104,14 @@ func makeTCPConnection(socket *net.TCPConn) types.NetConnection {
 				break
 			}
 
-			// REVIEW: huh?
 			select {
 			case netConn.rawCh <- raw:
+				// nop
 			default:
+				if msg := parseBytes(raw); msg != nil {
+					netConn.ch <- msg
+				}
 			}
-
-			msg := parseBytes(raw)
-			if msg == nil {
-				continue
-			}
-
-			netConn.ch <- msg
 		}
 
 		netConn.closed = true

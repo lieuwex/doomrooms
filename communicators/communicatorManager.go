@@ -24,7 +24,7 @@ func MakeCommunicatorManager() *CommunicatorManager {
 		gameServerConnCh:  make(chan *connections.Connection),
 		pipeSessionConnCh: make(chan *connections.Connection),
 
-		log: log.New(os.Stderr, "CommunicatorManager", log.LstdFlags),
+		log: log.New(os.Stderr, "CommunicatorManager ", log.LstdFlags),
 	}
 	return cm
 }

@@ -55,7 +55,7 @@ func main() {
 
 	err = config.ReadConfig(cm, configPath)
 	if err != nil {
-		log.Printf("error while reading config: %s", err)
+		log.Fatalf("error while reading config: %s", err)
 	}
 
 	go func() {

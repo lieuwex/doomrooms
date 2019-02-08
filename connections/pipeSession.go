@@ -1,9 +1,11 @@
 package connections
 
 import (
+	"context"
 	"doomrooms/utils"
 	"fmt"
 	"strings"
+	"sync"
 
 	"log"
 )
@@ -16,13 +18,15 @@ var PipeSessions = make([]*PipeSession, 0)
 type PipeSession struct {
 	PrivateID string
 
-	a *Connection
-	b *Connection
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	mu sync.Mutex
+	a  *Connection
+	b  *Connection
 
 	aToB chan []byte
 	bToA chan []byte
-
-	waitch chan bool
 }
 
 func MakePipeSession() (*PipeSession, error) {
@@ -31,13 +35,15 @@ func MakePipeSession() (*PipeSession, error) {
 		return nil, err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	session := &PipeSession{
 		PrivateID: id,
 
+		ctx:    ctx,
+		cancel: cancel,
+
 		aToB: make(chan []byte, bufferSize),
 		bToA: make(chan []byte, bufferSize),
-
-		waitch: make(chan bool),
 	}
 
 	PipeSessions = append(PipeSessions, session)
@@ -58,19 +64,18 @@ func (ps *PipeSession) BindConnection(conn *Connection) error {
 	if err != nil {
 		return err
 	}
-	defer ps.removeConnection(conn)
 
 	go func() {
+		defer ps.cancel()
+
 		for {
 			select {
-			case <-ps.waitch:
+			case <-ps.ctx.Done():
 				return
 
 			case bytes := <-recvCh:
-				err := conn.netConn.WriteRaw(bytes)
-				if err != nil {
-					fmt.Printf("ps err %#v\n", err)
-					close(ps.waitch)
+				if err := conn.netConn.WriteRaw(bytes); err != nil {
+					fmt.Printf("ps write err %#v\n", err)
 					return
 				}
 			}
@@ -78,28 +83,35 @@ func (ps *PipeSession) BindConnection(conn *Connection) error {
 	}()
 
 	go func() {
+		defer ps.cancel()
+
 		for {
 			select {
-			case <-ps.waitch:
+			case <-ps.ctx.Done():
 				return
 
-			case bytes := <-conn.netConn.RawChannel():
-				if conn.netConn.Closed() {
-					close(ps.waitch)
+			case bytes, ok := <-conn.netConn.RawChannel():
+				if !ok {
 					return
 				}
+
 				sendCh <- bytes
 			}
 		}
 	}()
 
-	<-ps.waitch
+	<-ps.ctx.Done()
 
 	conn.Close()
+	ps.removeConnection(conn)
+
 	return nil
 }
 
 func (ps *PipeSession) addConnection(conn *Connection) (sendCh chan []byte, recvCh chan []byte, err error) {
+	ps.mu.Lock()
+	defer ps.mu.Unlock()
+
 	if ps.a == nil {
 		ps.a = conn
 		return ps.aToB, ps.bToA, nil
@@ -112,6 +124,9 @@ func (ps *PipeSession) addConnection(conn *Connection) (sendCh chan []byte, recv
 }
 
 func (ps *PipeSession) removeConnection(conn *Connection) error {
+	ps.mu.Lock()
+	defer ps.mu.Unlock()
+
 	if ps.a == conn {
 		ps.a = nil
 	} else if ps.b == conn {
@@ -128,8 +143,6 @@ func (ps *PipeSession) removeConnection(conn *Connection) error {
 }
 
 func HandlePipeSesionConnection(conn *Connection) {
-	defer conn.Close()
-
 	bytes := <-conn.netConn.RawChannel()
 	if conn.closed {
 		log.Println("connection closed")
